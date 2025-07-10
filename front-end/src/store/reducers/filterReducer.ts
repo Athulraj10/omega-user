@@ -1,7 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import * as types from '../actions/types';
 
-export interface CounterState {
+export interface FilterState {
   selectedCategory: string[];
   selectedWeight: string[];
   minPrice: number;
@@ -16,7 +15,7 @@ export interface CounterState {
   selectedTags: string[];
 }
 
-const initialState: CounterState = {
+const initialState: FilterState = {
   selectedCategory: [],
   selectedWeight: [],
   minPrice: 0,
@@ -31,62 +30,78 @@ const initialState: CounterState = {
   selectedTags: [],
 };
 
-export const filterReducer = createSlice({
-  name: "filter",
-  initialState,
-  reducers: {
-    setSelectedCategory: (state, action: PayloadAction<string[]>) => {
-      state.selectedCategory = action.payload;
-    },
-    setSelectedWeight: (state, action: PayloadAction<string[]>) => {
-      state.selectedWeight = action.payload;
-    },
-    setPriceRange: (
-      state,
-      action: PayloadAction<{ min: number; max: number }>
-    ) => {
-      state.minPrice = action.payload.min;
-      state.maxPrice = action.payload.max;
-    },
-    setRange: (state, action: PayloadAction<{ min: number; max: number }>) => {
-      state.range = action.payload;
-    },
-    setSortOption: (state, action: PayloadAction<any>) => {
-      state.sortOption = action.payload;
-    },
-    setSearchTerm(state, action) {
-      state.searchTerm = action.payload;
-    },
-    setMinPrice: (state, action) => {
-      state.MinPrice = action.payload;
-    },
-    setMaxPrice: (state, action) => {
-      state.MaxPrice = action.payload;
-    },
-    setSelectedBrands: (state, action) => {
-      state.selectedBrands = action.payload;
-    },
-    setSelectedColor: (state, action: PayloadAction<string[]>) => {
-      state.selectedColor = action.payload;
-    },
-    setSelectedTags: (state, action: PayloadAction<string[]>) => {
-      state.selectedTags = action.payload;
-    },
-  },
-});
+const filterReducer = (state = initialState, action: any): FilterState => {
+  switch (action.type) {
+    case types.SET_SELECTED_CATEGORY:
+      return {
+        ...state,
+        selectedCategory: action.payload,
+      };
 
-export const {
-  setSelectedCategory,
-  setSelectedBrands,
-  setSearchTerm,
-  setSelectedColor,
-  setSelectedTags,
-  setSelectedWeight,
-  setSortOption,
-  setMaxPrice,
-  setMinPrice,
-  setPriceRange,
-  setRange,
-} = filterReducer.actions;
+    case types.SET_SELECTED_WEIGHT:
+      return {
+        ...state,
+        selectedWeight: action.payload,
+      };
 
-export default filterReducer.reducer;
+    case types.SET_PRICE_RANGE:
+      return {
+        ...state,
+        minPrice: action.payload.min,
+        maxPrice: action.payload.max,
+      };
+
+    case types.SET_RANGE:
+      return {
+        ...state,
+        range: action.payload,
+      };
+
+    case types.SET_SORT_OPTION:
+      return {
+        ...state,
+        sortOption: action.payload,
+      };
+
+    case types.SET_SEARCH_TERM:
+      return {
+        ...state,
+        searchTerm: action.payload,
+      };
+
+    case types.SET_MIN_PRICE:
+      return {
+        ...state,
+        MinPrice: action.payload,
+      };
+
+    case types.SET_MAX_PRICE:
+      return {
+        ...state,
+        MaxPrice: action.payload,
+      };
+
+    case types.SET_SELECTED_BRANDS:
+      return {
+        ...state,
+        selectedBrands: action.payload,
+      };
+
+    case types.SET_SELECTED_COLOR:
+      return {
+        ...state,
+        selectedColor: action.payload,
+      };
+
+    case types.SET_SELECTED_TAGS:
+      return {
+        ...state,
+        selectedTags: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+export default filterReducer;

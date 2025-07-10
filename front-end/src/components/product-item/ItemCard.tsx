@@ -6,12 +6,12 @@ import {
   addItem,
   setItems,
   updateItemQuantity,
-} from "../../store/reducers/cartSlice";
+} from "../../store/actions";
 import Link from "next/link";
 import { showSuccessToast } from "../toast-popup/Toastify";
 import { RootState } from "@/store";
-import { addWishlist, removeWishlist } from "@/store/reducers/wishlistSlice";
-import { addCompare, removeCompareItem } from "@/store/reducers/compareSlice";
+import { addWishlist, removeWishlist } from "@/store/actions";
+import { addCompare, removeCompareItem } from "@/store/actions";
 
 interface Item {
   id: number;
@@ -33,11 +33,11 @@ interface Item {
 const ItemCard = ({ data }: any) => {
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
-  const compareItems = useSelector((state: RootState) => state.compare.compare);
+  const compareItems = useSelector((state: RootState) => state.compare?.compare || []);
   const wishlistItems = useSelector(
-    (state: RootState) => state.wishlist.wishlist
+    (state: RootState) => state.wishlist?.wishlist || []
   );
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const cartItems = useSelector((state: RootState) => state.cart?.items || []);
 
   useEffect(() => {
     const itemsFromLocalStorage =
@@ -65,7 +65,7 @@ const ItemCard = ({ data }: any) => {
             } // Increment quantity and update price
           : item
       );
-      dispatch(updateItemQuantity(updatedCartItems));
+      dispatch(setItems(updatedCartItems));
       showSuccessToast("Add product in Cart Successfully!");
     }
   };

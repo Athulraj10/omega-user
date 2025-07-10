@@ -1,18 +1,25 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { createStore, applyMiddleware, combineReducers } from "redux";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // localStorage
-import { combineReducers } from "redux";
+import createSagaMiddleware from 'redux-saga';
 
-// Import slices
-import cartSlice from "./reducers/cartSlice";
-import registrationSlice from "./reducers/registrationSlice";
-import wishlistSlice from "./reducers/wishlistSlice";
-import compareSlice from "./reducers/compareSlice";
-import stepSlice from "./reducers/stepSlice";
+// Import reducers
+import cartReducer from "./reducers/cartReducer";
+import registrationReducer from "./reducers/registrationReducer";
+import wishlistReducer from "./reducers/wishlistReducer";
+import compareReducer from "./reducers/compareReducer";
+import stepReducer from "./reducers/stepReducer";
 import filterReducer from "./reducers/filterReducer";
-import themeSlice from "./reducers/themeSlice";
+import themeReducer from "./reducers/themeReducer";
+import productReducer from "./reducers/productReducer";
 
-// Configure persist for each slice separately
+// Import root saga
+import rootSaga from './sagas';
+
+// Create saga middleware
+const sagaMiddleware = createSagaMiddleware();
+
+// Configure persist for each reducer separately
 const persistConfigCart = { key: "cart", storage };
 const persistConfigRegistration = { key: "registration", storage };
 const persistConfigWishlist = { key: "wishlist", storage };
@@ -20,27 +27,29 @@ const persistConfigCompare = { key: "compare", storage };
 const persistConfigStep = { key: "step", storage };
 const persistConfigFilter = { key: "filter", storage };
 const persistConfigTheme = { key: "theme", storage };
+const persistConfigProduct = { key: "product", storage };
 
 // Wrap each reducer with persistReducer
-const persistedCartReducer = persistReducer(persistConfigCart, cartSlice);
+const persistedCartReducer = persistReducer(persistConfigCart, cartReducer);
 const persistedRegistrationReducer = persistReducer(
   persistConfigRegistration,
-  registrationSlice
+  registrationReducer
 );
 const persistedWishlistReducer = persistReducer(
   persistConfigWishlist,
-  wishlistSlice
+  wishlistReducer
 );
 const persistedCompareReducer = persistReducer(
   persistConfigCompare,
-  compareSlice
+  compareReducer
 );
-const persistedStepReducer = persistReducer(persistConfigStep, stepSlice);
+const persistedStepReducer = persistReducer(persistConfigStep, stepReducer);
 const persistedFilterReducer = persistReducer(
   persistConfigFilter,
   filterReducer
 );
-const persistedThemeReducer = persistReducer(persistConfigTheme, themeSlice);
+const persistedThemeReducer = persistReducer(persistConfigTheme, themeReducer);
+const persistedProductReducer = persistReducer(persistConfigProduct, productReducer);
 
 // Combine reducers
 const rootReducer = combineReducers({
@@ -51,16 +60,17 @@ const rootReducer = combineReducers({
   step: persistedStepReducer,
   filter: persistedFilterReducer,
   theme: persistedThemeReducer,
+  product: persistedProductReducer,
 });
 
-// Configure store
-export const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false, // Disable serializable check for redux-persist
-    }),
-});
+// Configure store with saga middleware
+export const store = createStore(
+  rootReducer,
+  applyMiddleware(sagaMiddleware)
+);
+
+// Run saga
+sagaMiddleware.run(rootSaga);
 
 // Types
 export type RootState = ReturnType<typeof store.getState>;

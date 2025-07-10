@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { addItem, updateItemQuantity } from "../../../store/reducers/cartSlice";
+import { addItem, setItems } from "../../../store/actions";
 import { showSuccessToast } from "@/components/toast-popup/Toastify";
 import { RootState } from "@/store";
 
@@ -22,7 +22,7 @@ interface Item {
 }
 
 const TrendingItem = ({ data }) => {
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const cartItems = useSelector((state: RootState) => state.cart?.items || []);
   const dispatch = useDispatch();
 
   const handleCart = (data: Item) => {
@@ -41,7 +41,7 @@ const TrendingItem = ({ data }) => {
             } // Increment quantity and update price
           : item
       );
-      dispatch(updateItemQuantity(updatedCartItems));
+      dispatch(setItems(updatedCartItems));
       showSuccessToast("Add product in Cart Successfully!");
     }
   };
