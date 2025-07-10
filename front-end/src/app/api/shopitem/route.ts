@@ -1,81 +1,76 @@
-import { NextRequest, NextResponse } from "next/server";
-import Shop from "../../../utility/data/shopitem";
+import { NextRequest, NextResponse } from "next/server"
 
-// Function to sort the data based on the sort option
-function sortData(filteredData: any[], sortOption: string) {
-  switch (sortOption) {
-    case "1":
-      // Sort by Position (implement custom logic if necessary)
-      return filteredData;
-    case "2":
-      // Sort by Relevance (implement custom logic if necessary)
-      return filteredData;
-    case "3":
-      // Sort by Name, A to Z
-      return [...filteredData].sort((a, b) =>
-        a.category.localeCompare(b.category)
-      );
-    case "4":
-      // Sort by Name, Z to A
-      return [...filteredData].sort((a, b) =>
-        b.category.localeCompare(a.category)
-      );
-    case "5":
-      // Sort by Price, low to high
-      return [...filteredData].sort((a, b) => a.newPrice - b.newPrice);
-    case "6":
-      // Sort by Price, high to low
-      return [...filteredData].sort((a, b) => b.newPrice - a.newPrice);
-    default:
-      return filteredData;
-  }
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 export async function POST(req: NextRequest) {
-  const { searchTerm = '', sortOption = '1', page = 1, limit = 10, selectedCategory = [], selectedWeight = [], selectedColor = [], selectedTags = [],   range = { min: 0, max: 250 }  } = await req.json();
+   try {
+      const body = await req.json()
+      const {
+         searchTerm = "",
+         sortOption = "1",
+         page = 1,
+         limit = 10,
+         selectedCategory = [],
+         selectedWeight = [],
+         selectedColor = [],
+         selectedTags = [],
+         range = { min: 0, max: 250 },
+      } = body
 
-  const currentPage = parseInt(page as string, 10);
-  const itemsPerPage = parseInt(limit as string, 10);
+      // Build query parameters for the backend
+      const params = new URLSearchParams()
 
-  let filteredData = Shop.filter(item =>
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())  &&
-    item.newPrice >= range.min &&
-    item.newPrice <= range.max
-  );
+      if (searchTerm) params.append("search", searchTerm)
+      if (page) params.append("page", page.toString())
+      if (limit) params.append("limit", limit.toString())
+      if (sortOption) params.append("sort", sortOption)
+      if (selectedCategory.length > 0)
+         params.append("categories", selectedCategory.join(","))
+      if (selectedWeight.length > 0) params.append("weights", selectedWeight.join(","))
+      if (selectedColor.length > 0) params.append("colors", selectedColor.join(","))
+      if (selectedTags.length > 0) params.append("tags", selectedTags.join(","))
+      if (range.min !== undefined) params.append("minPrice", range.min.toString())
+      if (range.max !== undefined) params.append("maxPrice", range.max.toString())
 
-  if (selectedCategory.length > 0) {
-    filteredData = filteredData.filter((item) =>
-      selectedCategory.includes(item.category)
-    );
-  }
+      const queryString = params.toString()
 
-  if (selectedWeight.length > 0) {
-    filteredData = filteredData.filter((item) =>
-      selectedWeight.includes(item.weight)
-    );
-  }
+      const response = await fetch(
+         `${API_BASE_URL}/api/v1/products${queryString ? `?${queryString}` : ""}`,
+         {
+            method: "GET",
+            headers: {
+               "Content-Type": "application/json",
+            },
+         }
+      )
 
-  if(selectedColor.length > 0) {
-    filteredData = filteredData.filter((item) => 
-      selectedColor.includes(item.color)
-    );
-  }
+      if (!response.ok) {
+         throw new Error(`Backend responded with status: ${response.status}`)
+      }
 
-  if(selectedTags.length > 0) {
-    filteredData = filteredData.filter((item) =>
-      selectedTags.includes(item.tags) 
-    )
-  }
+      const data = await response.json()
 
-  const sortedData = sortData(filteredData, sortOption);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
-
-  return NextResponse.json({
-    data: paginatedData,
-    totalItems: sortedData.length,
-    currentPage,
-    totalPages: Math.ceil(sortedData.length / itemsPerPage),
-  });
+      // Transform the response to match the expected format
+      return NextResponse.json({
+         data: data.products || data.data || data,
+         totalItems:
+            data.totalItems || data.total || (data.products ? data.products.length : 0),
+         currentPage: parseInt(page),
+         totalPages:
+            data.totalPages ||
+            Math.ceil((data.totalItems || data.total || 0) / parseInt(limit)),
+      })
+   } catch (error) {
+      console.error("Error fetching shop items:", error)
+      return NextResponse.json(
+         {
+            error: "Failed to fetch products",
+            data: [],
+            totalItems: 0,
+            currentPage: 1,
+            totalPages: 0,
+         },
+         { status: 500 }
+      )
+   }
 }

@@ -1,19 +1,23 @@
-const { userTokenAuth } = require('../../middlewares/user');
+const { userTokenAuth } = require("../../middlewares/user")
+const WishlistController = require("../../controllers/app/wishlistController")
 
-const router = require('express').Router();
+const router = require("express").Router()
 
-router.use(userTokenAuth);
+router.use(userTokenAuth)
 
-router.get('/', (req, res) => {
-    res.send('Get wishlist items');
-});
+// Get user's wishlist
+router.get("/", WishlistController.getWishlist)
 
-router.post('/add', (req, res) => {
-    res.send('Add product to wishlist');
-});
+// Add product to wishlist
+router.post("/add", WishlistController.addToWishlist)
 
-router.delete('/remove/:productId', (req, res) => {
-    res.send(`Remove product ${req.params.productId} from wishlist`);
-});
+// Remove product from wishlist
+router.delete("/remove/:productId", WishlistController.removeFromWishlist)
 
-module.exports = router;
+// Clear wishlist
+router.delete("/clear", WishlistController.clearWishlist)
+
+// Check if product is in wishlist
+router.get("/check/:productId", WishlistController.checkWishlistStatus)
+
+module.exports = router

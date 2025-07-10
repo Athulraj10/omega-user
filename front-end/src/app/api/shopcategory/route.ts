@@ -1,17 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import ShopCategory from "../../../utility/data/shopitem";
-import _ from "lodash"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function POST(req: NextRequest) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
-  const shopItems = ShopCategory;
+export async function GET(req: NextRequest) {
+   try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/products/categories`, {
+         method: "GET",
+         headers: {
+            "Content-Type": "application/json",
+         },
+      })
 
-  const groupedByCategory = _.groupBy(shopItems, "category");
+      if (!response.ok) {
+         throw new Error(`Backend responded with status: ${response.status}`)
+      }
 
-  const result = _.map(groupedByCategory, (items: string, key: any) => ({
-    category: key,
-    count: items.length 
-  }));
-
-  return NextResponse.json(result);
+      const data = await response.json()
+      return NextResponse.json(data)
+   } catch (error) {
+      console.error("Error fetching categories:", error)
+      return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
+   }
 }

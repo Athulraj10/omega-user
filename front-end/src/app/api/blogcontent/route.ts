@@ -1,45 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
-import Blog from "../../../utility/data/blogcontent";
+import { NextRequest, NextResponse } from "next/server"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 export async function POST(req: NextRequest) {
-  const { searchTerm, page, limit, selectedCategory } = await req.json();
+   try {
+      const body = await req.json()
+      const { searchTerm = "", page = 1, limit = 6, selectedCategory = [] } = body
 
-  // Convert request data to appropriate types
-  const currentPage = parseInt(page, 10) || 1;
-  const itemsPerPage = parseInt(limit, 10) || 6;
-  const term = searchTerm || "";
-  const categories = selectedCategory || [];
+      // For now, we'll return a fallback since blog endpoints might not be implemented yet
+      // You can replace this with actual blog API calls when the backend supports them
 
-  // Filter and paginate data
-  let filteredData = Blog;
+      // Example of how it would work with a real blog API:
+      // const params = new URLSearchParams();
+      // if (searchTerm) params.append('search', searchTerm);
+      // if (page) params.append('page', page.toString());
+      // if (limit) params.append('limit', limit.toString());
+      // if (selectedCategory.length > 0) params.append('categories', selectedCategory.join(','));
 
-  // Search filter
-  if (term) {
-    filteredData = filteredData.filter(
-      (item) =>
-        item.title.toLowerCase().includes(term.toLowerCase()) ||
-        item.category.toLowerCase().includes(term.toLowerCase())
-    );
-  }
+      // const response = await fetch(`${API_BASE_URL}/api/v1/blog${params.toString() ? `?${params.toString()}` : ''}`, {
+      //   method: 'GET',
+      //   headers: { 'Content-Type': 'application/json' },
+      // });
 
-  // Category filter
-  if (categories.length > 0) {
-    filteredData = filteredData.filter((item) =>
-      categories.includes(item.category)
-    );
-  }
+      // const data = await response.json();
+      // return NextResponse.json(data);
 
-  // Pagination
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  return NextResponse.json({
-    data: paginatedData,
-    totalItems,
-    totalPages,
-  });
+      // Fallback response for now
+      return NextResponse.json({
+         data: [],
+         totalItems: 0,
+         totalPages: 0,
+      })
+   } catch (error) {
+      console.error("Error fetching blog content:", error)
+      return NextResponse.json(
+         {
+            error: "Failed to fetch blog content",
+            data: [],
+            totalItems: 0,
+            totalPages: 0,
+         },
+         { status: 500 }
+      )
+   }
 }

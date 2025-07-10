@@ -1,22 +1,19 @@
-const router = require('express').Router();
-const { userTokenAuth } = require('../../middlewares/user');
+const router = require("express").Router()
+const { userTokenAuth } = require("../../middlewares/user")
+const orderController = require("../../controllers/app/orderController")
 
-router.use(userTokenAuth);
+router.use(userTokenAuth)
 
-router.post('/checkout', (req, res) => {
-    res.send('Place order');
-});
+// Place order
+router.post("/checkout", orderController.placeOrder)
 
-router.get('/', (req, res) => {
-    res.send('Get user orders');
-});
+// List user orders
+router.get("/", orderController.getOrders)
 
-router.get('/:id', (req, res) => {
-    res.send(`Get details of order ${req.params.id}`);
-});
+// Get order details
+router.get("/:id", orderController.getOrderById)
 
-router.put('/:id/cancel', (req, res) => {
-    res.send(`Cancel order ${req.params.id}`);
-});
+// Cancel order
+router.put("/:id/cancel", orderController.cancelOrder)
 
-module.exports = router;
+module.exports = router

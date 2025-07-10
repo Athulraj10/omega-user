@@ -37,7 +37,6 @@ export type ProductContentType<> = {
   url: string;
   postData?: any;
   WrapperAnimation?: React.FunctionComponent<WrapperAnimationFCProps>;
-  // index?: any;
   wrapperClass?: any;
   containerTagName?: any;
   hasPaginate?: boolean;

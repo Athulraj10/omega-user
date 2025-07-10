@@ -1,17 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import Weight from "../../../utility/data/shopitem";
-import _ from "lodash"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function POST(req: NextRequest) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
-  const shopItems = Weight;
+export async function GET(req: NextRequest) {
+   try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/products/filters`, {
+         method: "GET",
+         headers: {
+            "Content-Type": "application/json",
+         },
+      })
 
-  const groupedByWaight = _.groupBy(shopItems, "weight");
+      if (!response.ok) {
+         throw new Error(`Backend responded with status: ${response.status}`)
+      }
 
-  const result = _.map(groupedByWaight, (items: string, key: any) => ({
-    weight: key,
-    count: items.length 
-  }));
+      const data = await response.json()
 
-  return NextResponse.json(result);
+      // Extract weights from filters or return empty array if not available
+      const weights = data.weights || data.filters?.weights || []
+      return NextResponse.json(weights)
+   } catch (error) {
+      console.error("Error fetching weights:", error)
+      return NextResponse.json({ error: "Failed to fetch weights" }, { status: 500 })
+   }
 }
