@@ -1,5 +1,5 @@
 // API Base URL - update this to match your backend URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 // Helper function to get auth token
 const getAuthToken = () => {
@@ -40,43 +40,43 @@ export const productAPI = {
    // Get all products with filtering, sorting, and pagination
    getProducts: (params?: any) => {
       const queryString = params ? `?${new URLSearchParams(params).toString()}` : ""
-      return apiCall(`/api/products${queryString}`)
+      return apiCall(`/api/v1/products${queryString}`)
    },
 
    // Get product by ID
-   getProductById: (id: string) => apiCall(`/api/products/${id}`),
+   getProductById: (id: string) => apiCall(`/api/v1/products/${id}`),
 
    // Get product by slug
-   getProductBySlug: (slug: string) => apiCall(`/api/products/slug/${slug}`),
+   getProductBySlug: (slug: string) => apiCall(`/api/v1/products/slug/${slug}`),
 
    // Get featured products
    getFeatured: (limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/featured${queryString}`)
+      return apiCall(`/api/v1/products/featured${queryString}`)
    },
 
    // Get trending products
    getTrending: (limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/trending${queryString}`)
+      return apiCall(`/api/v1/products/trending${queryString}`)
    },
 
    // Get bestsellers
    getBestsellers: (limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/bestsellers${queryString}`)
+      return apiCall(`/api/v1/products/bestsellers${queryString}`)
    },
 
    // Get new arrivals
    getNewArrivals: (limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/new-arrivals${queryString}`)
+      return apiCall(`/api/v1/products/new-arrivals${queryString}`)
    },
 
    // Get deals
    getDeals: (limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/deals${queryString}`)
+      return apiCall(`/api/v1/products/deals${queryString}`)
    },
 
    // Search products
@@ -84,28 +84,28 @@ export const productAPI = {
       const params = new URLSearchParams({ q: query })
       if (limit) params.append("limit", limit.toString())
       if (page) params.append("page", page.toString())
-      return apiCall(`/api/products/search?${params.toString()}`)
+      return apiCall(`/api/v1/products/search?${params.toString()}`)
    },
 
    // Get product categories
-   getCategories: () => apiCall("/api/products/categories"),
+   getCategories: () => apiCall("/api/v1/products/categories"),
 
    // Get product brands
-   getBrands: () => apiCall("/api/products/brands"),
+   getBrands: () => apiCall("/api/v1/products/brands"),
 
    // Get product filters
-   getFilters: () => apiCall("/api/products/filters"),
+   getFilters: () => apiCall("/api/v1/products/filters"),
 
    // Get similar products
    getSimilarProducts: (productId: string, limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/${productId}/similar${queryString}`)
+      return apiCall(`/api/v1/products/${productId}/similar${queryString}`)
    },
 
    // Get related products
    getRelatedProducts: (productId: string, limit?: number) => {
       const queryString = limit ? `?limit=${limit}` : ""
-      return apiCall(`/api/products/${productId}/related${queryString}`)
+      return apiCall(`/api/v1/products/${productId}/related${queryString}`)
    },
 
    // Get product reviews
@@ -120,59 +120,60 @@ export const productAPI = {
       if (page) params.append("page", page.toString())
       if (limit) params.append("limit", limit.toString())
       const queryString = params.toString() ? `?${params.toString()}` : ""
-      return apiCall(`/api/products/${productId}/reviews${queryString}`)
+      return apiCall(`/api/v1/products/${productId}/reviews${queryString}`)
    },
 
    // Get product ratings
    getProductRatings: (productId: string) =>
-      apiCall(`/api/products/${productId}/ratings`),
+      apiCall(`/api/v1/products/${productId}/ratings`),
 
    // Get product variants
    getProductVariants: (productId: string) =>
-      apiCall(`/api/products/${productId}/variants`),
+      apiCall(`/api/v1/products/${productId}/variants`),
 
    // Check product availability
    checkAvailability: (productId: string, variantId?: string) => {
       const queryString = variantId ? `?variantId=${variantId}` : ""
-      return apiCall(`/api/products/${productId}/availability${queryString}`)
+      return apiCall(`/api/v1/products/${productId}/availability${queryString}`)
    },
 
    // Get delivery options
    getDeliveryOptions: (productId: string) =>
-      apiCall(`/api/products/${productId}/delivery-options`),
+      apiCall(`/api/v1/products/${productId}/delivery-options`),
 
    // Get comparison data
-   getCompareData: (productId: string) => apiCall(`/api/products/${productId}/compare`),
+   getCompareData: (productId: string) =>
+      apiCall(`/api/v1/products/${productId}/compare`),
 }
 
 // Cart API calls
 export const cartAPI = {
    // Get user cart
-   getCart: () => apiCall("/api/cart"),
+   getCart: () => apiCall("/api/v1/cart"),
 
    // Add item to cart
    addToCart: (productData: any) =>
-      apiCall("/api/cart/add", {
+      apiCall("/api/v1/cart/add", {
          method: "POST",
          body: JSON.stringify(productData),
       }),
 
    // Update cart item quantity
    updateQuantity: (productId: number, quantity: number) =>
-      apiCall(`/api/cart/update/${productId}`, {
+      apiCall(`/api/v1/cart/update/${productId}`, {
          method: "PUT",
          body: JSON.stringify({ quantity }),
       }),
 
    // Remove item from cart
    removeFromCart: (productId: number) =>
-      apiCall(`/api/cart/remove/${productId}`, {
+      apiCall(`/api/v1/cart/remove/${productId}`, {
          method: "DELETE",
       }),
 
    // Clear cart
    clearCart: () =>
-      apiCall("/api/cart/clear", {
+      apiCall("/api/v1/cart/clear", {
          method: "DELETE",
       }),
 }
@@ -180,18 +181,18 @@ export const cartAPI = {
 // Wishlist API calls
 export const wishlistAPI = {
    // Get user wishlist
-   getWishlist: () => apiCall("/api/wishlist"),
+   getWishlist: () => apiCall("/api/v1/wishlist"),
 
    // Add item to wishlist
    addToWishlist: (productData: any) =>
-      apiCall("/api/wishlist/add", {
+      apiCall("/api/v1/wishlist/add", {
          method: "POST",
          body: JSON.stringify(productData),
       }),
 
    // Remove item from wishlist
    removeFromWishlist: (productId: number) =>
-      apiCall(`/api/wishlist/remove/${productId}`, {
+      apiCall(`/api/v1/wishlist/remove/${productId}`, {
          method: "DELETE",
       }),
 }
@@ -200,78 +201,78 @@ export const wishlistAPI = {
 export const authAPI = {
    // Login
    login: (credentials: { email: string; password: string }) =>
-      apiCall("/api/login", {
+      apiCall("/api/v1/login", {
          method: "POST",
          body: JSON.stringify(credentials),
       }),
 
    // Register
    register: (userData: any) =>
-      apiCall("/api/registration", {
+      apiCall("/api/v1/registration", {
          method: "POST",
          body: JSON.stringify(userData),
       }),
 
    // Logout
    logout: () =>
-      apiCall("/api/logout", {
+      apiCall("/api/v1/logout", {
          method: "POST",
       }),
 
    // Get user profile
-   getProfile: () => apiCall("/api/user_detail"),
+   getProfile: () => apiCall("/api/v1/user_detail"),
 
    // Forgot password
    forgotPassword: (email: string) =>
-      apiCall("/api/forgot_password", {
+      apiCall("/api/v1/forgot_password", {
          method: "POST",
          body: JSON.stringify({ email }),
       }),
 
    // Reset password
    resetPassword: (token: string, password: string) =>
-      apiCall("/api/reset_password", {
+      apiCall("/api/v1/reset_password", {
          method: "POST",
          body: JSON.stringify({ token, password }),
       }),
 
    // Verify email
    verifyEmail: (email: string, otp: string) =>
-      apiCall("/api/email_verify", {
+      apiCall("/api/v1/email_verify", {
          method: "POST",
          body: JSON.stringify({ email, otp }),
       }),
 
    // Resend OTP
    resendOtp: (email: string) =>
-      apiCall("/api/resend_otp", {
+      apiCall("/api/v1/resend_otp", {
          method: "POST",
          body: JSON.stringify({ email }),
       }),
 
    // Check username availability
    checkUsername: (username: string) =>
-      apiCall(`/api/username?username=${encodeURIComponent(username)}`),
+      apiCall(`/api/v1/username?username=${encodeURIComponent(username)}`),
 }
 
 // Orders API calls
 export const ordersAPI = {
    // Get user orders
-   getOrders: () => apiCall("/api/orders"),
+   getOrders: () => apiCall("/api/v1/orders"),
 
    // Place new order
    createOrder: (orderData: any) =>
-      apiCall("/api/orders/checkout", {
+      apiCall("/api/v1/orders/checkout", {
          method: "POST",
          body: JSON.stringify(orderData),
       }),
 
    // Get order by ID
-   getOrderById: (orderId: string) => apiCall(`/api/orders/${orderId}`),
+   getOrderById: (orderId: string) => apiCall(`/api/v1/orders/${orderId}`),
 
    // Cancel order
    cancelOrder: (orderId: string) =>
-      apiCall(`/api/orders/${orderId}/cancel`, {
+      apiCall(`/api/v1/orders/${orderId}/cancel`, {
          method: "PUT",
       }),
 }

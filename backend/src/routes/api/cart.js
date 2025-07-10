@@ -1,28 +1,18 @@
-const { userTokenAuth } = require('../../middlewares/user');
+const { userTokenAuth } = require("../../middlewares/user")
+const CartController = require("../../controllers/app/cartController")
 
-const router = require('express').Router();
+const router = require("express").Router()
 
+router.use(userTokenAuth)
 
-router.use(userTokenAuth);
+router.get("/", CartController.getCart)
 
-router.get('/', (req, res) => {
-    res.send('Get user cart');
-});
+router.post("/add", CartController.addToCart)
 
-router.post('/add', (req, res) => {
-    res.send('Add product to cart');
-});
+router.put("/update/:productId", CartController.updateQuantity)
 
-router.put('/update/:productId', (req, res) => {
-    res.send(`Update product ${req.params.productId} quantity`);
-});
+router.delete("/remove/:productId", CartController.removeFromCart)
 
-router.delete('/remove/:productId', (req, res) => {
-    res.send(`Remove product ${req.params.productId} from cart`);
-});
+router.delete("/clear", CartController.clearCart)
 
-router.delete('/clear', (req, res) => {
-    res.send('Clear cart');
-});
-
-module.exports = router;
+module.exports = router
