@@ -37,6 +37,7 @@ module.exports = {
   },
   USER_WALLET: {
     COIN: 3000,
-    DIAMOND: 3000
+    DIAMOND: 3000,
+    BALANCE: 0
   },
 };

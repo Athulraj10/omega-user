@@ -1,28 +1,21 @@
 const Cart = require("../../models/cart")
 const Product = require("../../models/product")
-const { successResponseData, errorResponseData } = require("../../services/response")
+const { successResponseData } = require("../../services/Response")
 
 const CartController = {
    // Get user's cart
    getCart: async (req, res) => {
       try {
-         const cart = await Cart.findOne({ user: req.user._id }).populate({
+         const authUserId = req.authUserId
+         const cart = await Cart.findOne({ user: authUserId }).populate({
             path: "items.product",
             select:
                "name price discountPrice images category brand ratingsAverage ratingsCount stock status slug",
          })
-
          if (!cart) {
-            // Create empty cart if it doesn't exist
-            const newCart = new Cart({
-               user: req.user._id,
-               items: [],
-            })
-            await newCart.save()
             return successResponseData(res, [], 200, "Cart fetched")
          }
 
-         // Transform cart items to match frontend format
          const transformedItems = cart.items.map((item) => ({
             id: item.product._id,
             title: item.product.name,

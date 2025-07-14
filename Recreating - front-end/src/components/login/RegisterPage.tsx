@@ -10,6 +10,8 @@ import { Form } from "react-bootstrap";
 import * as formik from "formik";
 import * as yup from "yup";
 import { login } from "@/store/reducers/registrationSlice";
+import { showErrorToast, showSuccessToast } from "../toast-popup/Toastify";
+import OTPInput from "../otp/OtpModal";
 
 interface Country {
   id: string;
@@ -29,9 +31,13 @@ interface City {
   iso2: string;
 }
 
-const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
+const RegisterPage = ({ onSuccess = () => { }, onError = () => { } }) => {
   const { Formik } = formik;
   const formikRef = useRef<any>(null);
+
+  const [isOTPValidation, setIsOTPValidation] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState<any>(null);
+
 
   // Define Yup validation schema
   const schema = yup.object().shape({
@@ -54,10 +60,10 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
       .required("Confirm password is required")
       .oneOf([yup.ref("password")], "Passwords must match"),
     address: yup.string().required("Address is required"),
-    country: yup.string().required("Country is required"),
-    state: yup.string().required("State is required"),
-    city: yup.string().required("City is required"),
-    postCode: yup.string().required("Post code is required"),
+    // country: yup.string().required("Country is required"),
+    // state: yup.string().required("State is required"),
+    // city: yup.string().required("City is required"),
+    // postCode: yup.string().required("Post code is required"),
   });
 
   const initialValues = {
@@ -68,10 +74,10 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
     password: "",
     confirmPassword: "",
     address: "",
-    country: "",
-    state: "",
-    city: "",
-    postCode: "",
+    // country: "",
+    // state: "",
+    // city: "",
+    // postCode: "",
   };
 
   const router = useRouter();
@@ -83,26 +89,26 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
-  const {
-    data: country,
-    error,
-    isValidating,
-  } = useSWR("/api/country", fetcher, {
-    onSuccess,
-    onError,
-  });
+  // const {
+  //   data: country,
+  //   error,
+  //   isValidating,
+  // } = useSWR("/api/country", fetcher, {
+  //   onSuccess,
+  //   onError,
+  // });
 
-  useEffect(() => {
-    if (country) {
-      setFilteredCountryData(
-        country.map((country: any) => ({
-          id: country.id,
-          countryName: country.name,
-          iso2: country.iso2,
-        }))
-      );
-    }
-  }, [country]);
+  // useEffect(() => {
+  //   if (country) {
+  //     setFilteredCountryData(
+  //       country.map((country: any) => ({
+  //         id: country.id,
+  //         countryName: country.name,
+  //         iso2: country.iso2,
+  //       }))
+  //     );
+  //   }
+  // }, [country]);
 
   const handleCountryChange = async (e: any) => {
     const { value } = e.target;
@@ -145,45 +151,60 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
     );
   };
 
+  const loginSuccessFull = (data) => {
+    localStorage.setItem('login_temp', JSON.stringify(data));
+    setIsOTPValidation(false);
+    return
+  }
+
   const onSubmit = async (values: any) => {
+    const payload = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      password: values.password,
+      phone: values.phoneNumber,
+      address: {
+        street: values.address,
+        city: values.city,
+        state: values.state,
+        country: values.country,
+        zipCode: values.postCode
+      }
+    }
     try {
       const response = await fetch(`/api/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          password: values.password,
-          phone: values.phoneNumber,
-          address: {
-            street: values.address,
-            city: values.city,
-            state: values.state,
-            country: values.country,
-            zipCode: values.postCode
-          }
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      console.log('data from backend', data)
+      if (data?.meta?.code !== 200) {
+        showErrorToast(data?.meta?.message || "Registration failed")
+        return
       }
 
-      // Store user data in localStorage
-      localStorage.setItem('login_user', JSON.stringify(data.data));
-      dispatch(login(data.data));
+      if (data.meta.code === 200) {
+        console.log(data)
+        showSuccessToast("Enter the otp received in your email")
 
-      // Redirect to home page
-      router.push('/');
+        if (data?.data?.status === "0") {
+          console.log(data.data)
+          setIsOTPValidation(true)
+          setRegisteredUser(data.data);
+          return
+        } else if (data?.data?.status === "1") {
+          loginSuccessFull(data.data)
+        }
 
-      // Reset form after successful submission
-      if (formikRef.current) {
-        formikRef.current.resetForm();
+        if (formikRef.current) {
+          formikRef.current.resetForm();
+        }
+        return
       }
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -192,198 +213,274 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
     }
   };
 
-  if (error) return <div>Error loading data</div>;
-  if (!country && isValidating) return <Spinner />;
+  const onCancel = () => {
+    setIsOTPValidation(false);
+    setRegisteredUser([]);
+    if (formikRef.current) {
+      formikRef.current.resetForm();
+    }
+  }
+
+  const handleOTPSubmit = async (otp: string) => {
+    try {
+      const response = await fetch('/api/users/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: registeredUser._id, otp }),
+      });
+
+      const data = await response.json();
+      if (data?.meta?.code === 200) {
+        showSuccessToast("OTP verified successfully");
+        loginSuccessFull(registeredUser)
+        router.push('/login');
+      } else {
+        showErrorToast(data?.meta?.message || "Invalid OTP");
+      }
+    } catch (error) {
+      showErrorToast("OTP verification failed");
+    }
+  };
+  const reSendOTP = async () => {
+    try {
+      const response = await fetch('/api/users/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: registeredUser._id }),
+      });
+
+      const data = await response.json();
+      console.log({ data })
+      if (data?.meta?.code === 200) {
+        showSuccessToast("OTP resended successfully");
+        setIsOTPValidation(true)
+        return
+      } else {
+        showErrorToast(data?.meta?.message || "Invalid OTP");
+      }
+    } catch (error) {
+      showErrorToast("OTP verification failed");
+    }
+  };
+
+
+  // if (error) return <div>Error loading data</div>;
+  // if (!country && isValidating) return <Spinner />;
 
   return (
     <>
-      <Breadcrumb title={"Register Page"} />
+      <Breadcrumb title={isOTPValidation ? "OTP Validation" : "Register"} />
       <section className="gi-register padding-tb-40">
         <div className="container">
           <div className="section-title-2">
             <h2 className="gi-title">
-              Register<span></span>
+              {isOTPValidation ? "OTP validation" : "Register"}<span></span>
             </h2>
-            <p>Best place to buy and sell digital products.</p>
+            {/* <p>Best place to buy and sell digital products.</p> */}
           </div>
           <div className="row">
             <div className="gi-register-wrapper">
               <div className="gi-register-container">
-                <div className="gi-register-form">
-                  <Formik
-                    innerRef={formikRef}
-                    validationSchema={schema}
-                    onSubmit={onSubmit}
-                    initialValues={initialValues}
+
+                {isOTPValidation ? (
+                  <div
+                    className="modal fade show"
+                    tabIndex={-1}
+                    role="dialog"
+                    style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
                   >
-                    {({
-                      handleSubmit,
-                      handleChange,
-                      values,
-                      touched,
-                      errors,
-                    }) => (
-                      <>
-                        <Form noValidate onSubmit={handleSubmit}>
-                          <span className="gi-register-wrap gi-register-half">
-                            <label htmlFor="firstname">First Name*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="text"
-                                name="firstName"
-                                placeholder="Enter your first name"
-                                value={values.firstName}
-                                onChange={handleChange}
-                                isInvalid={!!errors.firstName}
-                                required
-                              />
-                              {errors.firstName &&
-                                typeof errors.firstName === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.firstName}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span className="gi-register-wrap gi-register-half">
-                            <label>Last Name*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="text"
-                                name="lastName"
-                                placeholder="Enter your last name"
-                                required
-                                value={values.lastName}
-                                onChange={handleChange}
-                                isInvalid={!!errors.lastName}
-                              />
-                              {errors.lastName &&
-                                typeof errors.lastName === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.lastName}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap gi-register-half"
-                          >
-                            <label>Email*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="email"
-                                name="email"
-                                placeholder="Enter your email add..."
-                                required
-                                value={values.email}
-                                onChange={handleChange}
-                                isInvalid={!!errors.email}
-                              />
-                              {errors.email &&
-                                typeof errors.email === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.email}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap gi-register-half"
-                          >
-                            <label>Phone Number*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="text"
-                                name="phoneNumber"
-                                placeholder="Enter your phone number"
-                                pattern="^\d{10,12}$"
-                                required
-                                value={values.phoneNumber}
-                                onChange={handleChange}
-                                isInvalid={!!errors.phoneNumber}
-                              />
-                              {errors.phoneNumber &&
-                                typeof errors.phoneNumber === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.phoneNumber}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap gi-register-half"
-                          >
-                            <label>Password*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                pattern="^\d{6,12}$"
-                                required
-                                value={values.password}
-                                onChange={handleChange}
-                                isInvalid={!!errors.password}
-                              />
-                              {errors.password &&
-                                typeof errors.password === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.password}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap gi-register-half"
-                          >
-                            <label>Conform Password*</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="password"
-                                name="confirmPassword"
-                                placeholder="Enter your Conform password"
-                                pattern="^\d{6,12}$"
-                                required
-                                value={values.confirmPassword}
-                                onChange={handleChange}
-                                isInvalid={!!errors.confirmPassword}
-                              />
-                              {errors.confirmPassword &&
-                                typeof errors.confirmPassword === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.confirmPassword}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap"
-                          >
-                            <label>Address</label>
-                            <Form.Group>
-                              <Form.Control
-                                type="text"
-                                name="address"
-                                placeholder="Address Line 1"
-                                value={values.address}
-                                onChange={handleChange}
-                                isInvalid={!!errors.address}
-                                required
-                              />
-                              {errors.address &&
-                                typeof errors.address === "string" && (
-                                  <Form.Control.Feedback type="invalid">
-                                    {errors.address}
-                                  </Form.Control.Feedback>
-                                )}
-                            </Form.Group>
-                          </span>
-                          <span
+                    <div className="modal-dialog modal-dialog-centered">
+                      <div className="modal-content p-3">
+                        <div className="modal-header border-0">
+                          <h5 className="modal-title text-danger w-100 text-center">Enter OTP</h5>
+                        </div>
+                        <div className="modal-body">
+                          <p className="text-center text-muted mb-3">
+                            A 4-digit OTP was sent to <strong>{registeredUser?.phone}</strong>
+                          </p>
+                          <OTPInput onSubmit={handleOTPSubmit} onCancel={onCancel} reSendOTP={reSendOTP} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                ) : (
+                  <div className="gi-register-form">
+                    <Formik
+                      innerRef={formikRef}
+                      validationSchema={schema}
+                      onSubmit={onSubmit}
+                      initialValues={initialValues}
+                    >
+                      {({
+                        handleSubmit,
+                        handleChange,
+                        values,
+                        touched,
+                        errors,
+                      }) => (
+                        <>
+                          <Form noValidate onSubmit={handleSubmit}>
+                            <span className="gi-register-wrap gi-register-half">
+                              <label htmlFor="firstname">First Name*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="text"
+                                  name="firstName"
+                                  placeholder="Enter your first name"
+                                  value={values.firstName}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.firstName}
+                                  required
+                                />
+                                {errors.firstName &&
+                                  typeof errors.firstName === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.firstName}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span className="gi-register-wrap gi-register-half">
+                              <label>Last Name*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="text"
+                                  name="lastName"
+                                  placeholder="Enter your last name"
+                                  required
+                                  value={values.lastName}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.lastName}
+                                />
+                                {errors.lastName &&
+                                  typeof errors.lastName === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.lastName}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap gi-register-half"
+                            >
+                              <label>Email*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="email"
+                                  name="email"
+                                  placeholder="Enter your email add..."
+                                  required
+                                  value={values.email}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.email}
+                                />
+                                {errors.email &&
+                                  typeof errors.email === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.email}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap gi-register-half"
+                            >
+                              <label>Phone Number*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="text"
+                                  name="phoneNumber"
+                                  placeholder="Enter your phone number"
+                                  pattern="^\d{10,12}$"
+                                  required
+                                  value={values.phoneNumber}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.phoneNumber}
+                                />
+                                {errors.phoneNumber &&
+                                  typeof errors.phoneNumber === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.phoneNumber}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap gi-register-half"
+                            >
+                              <label>Password*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="password"
+                                  name="password"
+                                  placeholder="Enter your password"
+                                  pattern="^\d{6,12}$"
+                                  required
+                                  value={values.password}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.password}
+                                />
+                                {errors.password &&
+                                  typeof errors.password === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.password}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap gi-register-half"
+                            >
+                              <label>Conform Password*</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="password"
+                                  name="confirmPassword"
+                                  placeholder="Enter your Conform password"
+                                  pattern="^\d{6,12}$"
+                                  required
+                                  value={values.confirmPassword}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.confirmPassword}
+                                />
+                                {errors.confirmPassword &&
+                                  typeof errors.confirmPassword === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.confirmPassword}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap"
+                            >
+                              <label>Address</label>
+                              <Form.Group>
+                                <Form.Control
+                                  type="text"
+                                  name="address"
+                                  placeholder="Address Line 1"
+                                  value={values.address}
+                                  onChange={handleChange}
+                                  isInvalid={!!errors.address}
+                                  required
+                                />
+                                {errors.address &&
+                                  typeof errors.address === "string" && (
+                                    <Form.Control.Feedback type="invalid">
+                                      {errors.address}
+                                    </Form.Control.Feedback>
+                                  )}
+                              </Form.Group>
+                            </span>
+                            {/* <span
                             style={{ marginTop: "10px" }}
                             className="gi-register-wrap gi-register-half"
                           >
@@ -537,45 +634,50 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
                                   </Form.Control.Feedback>
                                 )}
                             </Form.Group>
-                          </span>
-                          <span className="gi-register-wrap gi-recaptcha">
-                            <span
-                              className="g-recaptcha"
-                              data-sitekey="6LfKURIUAAAAAO50vlwWZkyK_G2ywqE52NU7YO0S"
-                              data-callback="verifyRecaptchaCallback"
-                              data-expired-callback="expiredRecaptchaCallback"
-                            ></span>
-                            <input
-                              className="form-control d-none"
-                              data-recaptcha="true"
-                              required
-                              data-error="Please complete the Captcha"
-                            />
-                            <span className="help-block with-errors"></span>
-                          </span>
-                          <span
-                            style={{ marginTop: "10px" }}
-                            className="gi-register-wrap gi-register-btn"
-                          >
-                            <span>
-                              Already have an account?
-                              <a href="/login">Login</a>
+                          </span> */}
+                            <span className="gi-register-wrap gi-recaptcha">
+                              <span
+                                className="g-recaptcha"
+                                data-sitekey="6LfKURIUAAAAAO50vlwWZkyK_G2ywqE52NU7YO0S"
+                                data-callback="verifyRecaptchaCallback"
+                                data-expired-callback="expiredRecaptchaCallback"
+                              ></span>
+                              <input
+                                className="form-control d-none"
+                                data-recaptcha="true"
+                                required
+                                data-error="Please complete the Captcha"
+                              />
+                              <span className="help-block with-errors"></span>
                             </span>
-                            <button className="gi-btn-1" type="submit">
-                              Register
-                            </button>
-                          </span>
-                        </Form>
-                      </>
-                    )}
-                  </Formik>
-                </div>
+                            <span
+                              style={{ marginTop: "10px" }}
+                              className="gi-register-wrap gi-register-btn"
+                            >
+                              <span>
+                                Already have an account?
+                                <a href="/login">Login</a>
+                              </span>
+                              <button className="gi-btn-1" type="submit">
+                                Register
+                              </button>
+                            </span>
+                          </Form>
+                        </>
+                      )}
+                    </Formik>
+                  </div>
+                )}
+
+
+
               </div>
             </div>
           </div>
         </div>
       </section>
     </>
+
   );
 };
 

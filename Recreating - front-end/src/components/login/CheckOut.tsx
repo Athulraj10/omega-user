@@ -297,7 +297,7 @@ const CheckOut = ({
   // item Price
 
   useEffect(() => {
-    if (cartItems.length === 0) {
+    if (cartItems?.length === 0) {
       setSubTotal(0);
       setVat(0);
       return;
@@ -478,7 +478,7 @@ const CheckOut = ({
       <section className="gi-checkout-section padding-tb-40">
         <h2 className="d-none">Checkout Page</h2>
         <div className="container">
-          {cartItems.length === 0 ? (
+          {cartItems?.length === 0 ? (
             <div
               style={{
                 textAlign: "center",
@@ -550,7 +550,7 @@ const CheckOut = ({
                         </div>
                       </div>
                       <div className="gi-checkout-pro">
-                        {cartItems.map((item: any, index: number) => (
+                        {cartItems?.map((item: any, index: number) => (
                           <div key={index} className="col-sm-12 mb-6">
                             <div className="gi-product-inner">
                               <div className="gi-pro-image-outer">

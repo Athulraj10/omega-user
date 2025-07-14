@@ -4,7 +4,7 @@ import QuickViewModal from "../model/QuickViewModal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addItem,
-  setItems,
+  setCartItems,
   updateItemQuantity,
 } from "../../store/reducers/cartSlice";
 import Link from "next/link";
@@ -45,7 +45,7 @@ const ItemCard = ({ data }: any) => {
         ? JSON.parse(localStorage.getItem("products") || "[]")
         : [];
     if (itemsFromLocalStorage.length) {
-      dispatch(setItems(itemsFromLocalStorage));
+      dispatch(setCartItems(itemsFromLocalStorage));
     }
   }, [dispatch]);
 

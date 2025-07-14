@@ -21,7 +21,7 @@ function LayoutOne({ children }) {
     <>
       <Header />
       {children}
-      <Footer />
+      {/* <Footer /> ----banner */}
       <Toastify />
     </>
   );

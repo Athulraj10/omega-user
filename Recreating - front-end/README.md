@@ -43,7 +43,7 @@ npm install pm2 -g
 
 npm run build
 
-pm2 start npm --name "grabit-next" -- run start
+pm2 start npm --name "Omega-next" -- run start
 ```
 ## Configure with Nginx / Apache 
 

@@ -64,3 +64,66 @@ export interface Order {
   status: string;
   products: Product[];
 }
+
+export interface IPAddress {
+  system_ip: string | null;
+  browser_ip: string;
+}
+
+export interface User {
+  _id: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  profile_pic: string;
+  mobile_no: number;
+  device_code: string;
+  email_verify: string | null;
+  status: string;
+  role: "user" | "admin";
+  roleLevel: number;
+  ip_address: IPAddress;
+  createdAt: string;
+  updatedAt: string;
+  last_login?: string;
+  token?: string;
+  __v?: number;
+}
+
+export interface Address {
+  id: string,
+  userId: string,
+  label: string,
+  addressLine1: {
+    street: string
+  },
+  city: string,
+  state: string,
+  postalCode: string,
+  country: string,
+  phone: number,
+  isDefault: boolean
+}
+
+export interface Wallet {
+  id: string,
+  userId: string,
+  coin: number,
+  diamond: number,
+  balance: number,
+  currency: {
+    id: string,
+    code: string,
+    name: string,
+    value: number
+  }
+}
+type BannerItem = {
+  titleLine1: string;
+  titleLine2: string;
+  offerText: string;
+  offerHighlight: string;
+  buttonText?: string;
+  link?: string;
+};

@@ -1,5 +1,5 @@
 {
-  "name": "grabit-next",
+  "name": "Omega-next",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -22,9 +22,10 @@
     "framer-motion": "^12.4.1",
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
-    "next": "^15.1.6",
+    "next": "^15.3.5",
     "next-redux-wrapper": "^8.1.0",
     "nouislider": "^14.7.0",
     "nouislider-react": "^3.4.2",
@@ -53,12 +54,15 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^22.13.1",
     "@types/nouislider": "^9.0.10",
+    "autoprefixer": "^10.4.21",
     "cross-env": "^7.0.3",
     "eslint": "^9.19.0",
     "eslint-config-next": "^15.1.6",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11",
     "typescript": "5.7.3"
   }
 }

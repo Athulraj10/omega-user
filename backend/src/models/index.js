@@ -11,6 +11,7 @@ const Wishlist = require("./wishlist");
 const Cart = require("./cart");
 const Product = require("./product");
 const Address = require("./address");
+const Banner = require("./banner");
 
 module.exports = {
   User,
@@ -24,4 +25,5 @@ module.exports = {
   Cart,
   Product,
   Address,
+  Banner,
 };

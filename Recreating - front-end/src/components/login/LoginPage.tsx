@@ -47,7 +47,7 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, router]);
 
-  const handleLogin = (e: any) => {
+  const handleLogin = async (e: any) => {
     e.preventDefault();
 
     const form = e.currentTarget;
@@ -55,20 +55,40 @@ const LoginPage = () => {
       e.stopPropagation();
     }
 
-    const foundUser = registrations.find(
-      (user) => user.email === email && user.password === password
-    );
-
-    if (foundUser) {
-      const userData = { uid: foundUser.uid, email, password };
-      localStorage.setItem("login_user", JSON.stringify(userData));
-      dispatch(login(foundUser));
-      showSuccessToast("User Login Success");
-    } else {
-      showErrorToast("Invalid email or password");
+    const payload = {
+      email, password
     }
+    try {
+      const response = await fetch(`/api/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-    setValidated(true);
+      const data = await response.json();
+      console.log('data from backend', data)
+      if (data?.meta?.code !== 200) {
+        showErrorToast(data?.meta?.message || "Login failed")
+        return
+      }
+
+      if (data.meta.code === 200) {
+        console.log(data)
+        localStorage.setItem('userData', JSON.stringify(data.data));
+        localStorage.setItem('token', JSON.stringify(data.meta.token));
+        localStorage.removeItem("login_temp")
+        dispatch(login(data))
+        showSuccessToast("login successfully")
+        router.push("/home")
+        return
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      // You might want to show an error message to the user here
+      alert(error.message || 'Registration failed. Please try again.');
+    }
   };
 
   return (

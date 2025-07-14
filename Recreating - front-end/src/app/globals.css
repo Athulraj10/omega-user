@@ -276,3 +276,17 @@ a {
 .height-transition-1s-ease {
   transition: height 1s ease, opacity 0.5s ease;
 }
+
+.gi-location-content {
+  max-height: 300px; /* or any suitable max height */
+  overflow-y: auto;  /* enables internal scroll if content overflows */
+  position: absolute; /* avoid pushing other content */
+  z-index: 9999;      /* make sure dropdown is on top */
+  background: white;  /* set background */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* nice shadow */
+  width: 100%;       /* match toggle width */
+}
+
+.gi-location-block {
+  position: relative; /* for dropdown absolute positioning */
+}

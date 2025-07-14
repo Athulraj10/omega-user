@@ -23,11 +23,11 @@ function Footer({ onSuccess = () => {}, onError = () => {} }) {
     onError,
   });
 
-  if (error) return <div>Failed to load products</div>;
+  if (error) return <div>Failed to load Category</div>;
   if (!data) return <div></div>;
 
   const getData = () => {
-    return data.length > 6 ? slice(data, 0, 6) : data;
+    return data?.length > 6 ? slice(data, 0, 6) : data;
   };
 
   const toggleDropdown = (dropdown: any) => {
@@ -68,7 +68,7 @@ function Footer({ onSuccess = () => {}, onError = () => {} }) {
                         alt="footer logo"
                       />
                       <p className="gi-footer-detail">
-                        Grabit is the biggest market of grocery products. Get
+                        Omega is the biggest market of grocery products. Get
                         your daily needs from our store.
                       </p>
                       <div className="gi-app-store">
@@ -384,9 +384,9 @@ function Footer({ onSuccess = () => {}, onError = () => {} }) {
                       <div className="gi-copy">
                         Copyright ©{" "}
                         <Link className="site-name" href="/">
-                          Grabit{" "}
+                          Omega{" "}
                         </Link>
-                        all rights reserved. Powered by Grabit.
+                        all rights reserved. Powered by Omega.
                       </div>
                     </div>
                   </div>

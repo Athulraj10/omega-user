@@ -5,7 +5,7 @@ RewriteEngine On
 RewriteRule ^assets/(.*)$ public/assets/$1 [L]
 
 # Reverse Proxy to Next.js App Running Locally on Port 3000
-RewriteCond %{HTTP_HOST} ^grabit-react\.maraviyainfotech\.com$
+RewriteCond %{HTTP_HOST} ^Omega-react\.maraviyainfotech\.com$
 RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
 
 # Optional: Force HTTPS if you need it (uncomment to enable)

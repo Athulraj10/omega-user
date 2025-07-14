@@ -8,7 +8,7 @@ interface RootLayoutProps {
 }
 
 export const metadata = {
-  title: "Grabit - Multipurpose eCommerce React NextJS Template",
+  title: "Omega - Multipurpose eCommerce React NextJS Template",
   description: "Multipurpose eCommerce React NextJS Template",
 
   icons: {

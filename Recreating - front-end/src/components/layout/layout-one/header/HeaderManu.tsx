@@ -293,7 +293,7 @@ function HeaderManu() {
             </Tabs>
 
             {/* <!-- Main Menu Start --> */}
-            <div
+            {/* <div
               id="gi-main-menu-desk"
               className="d-none d-lg-block sticky-nav"
             >
@@ -438,7 +438,7 @@ function HeaderManu() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
             {/* <!-- Main Menu End --> */}
 
             <CurrentLocation />

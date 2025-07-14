@@ -176,8 +176,8 @@ module.exports = {
    */
   logoutAndBlockValidation: (req, res, callback) => {
     const schema = Joi.object({
-      id: Joi.string().trim().required(),
-      action_type: Joi.string().valid("logout", "block").required(),
+      userId: Joi.string().trim().required(),
+      action_type: Joi.string().valid("logout", "block").optional(),
     });
     const { error } = schema.validate(req);
     if (error) {

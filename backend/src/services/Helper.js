@@ -96,4 +96,80 @@ module.exports = {
       allValid: invalidIds.length === 0,
     };
   },
+
+  sanitizeUser: (user) => {
+    const {
+      password,
+      password_text,
+      wallet_id,
+      addresses_id,
+      ip_address,
+      device_code,
+      email_verify,
+      status,
+      role,
+      roleLevel,
+      createdAt,
+      updatedAt,
+      __v,
+      last_login,
+      token,
+      currencyId,
+      ...safeUser
+    } = user;
+    return safeUser;
+  },
+  sanitizeAddress: (address) => {
+    if (!address) return null;
+
+    const {
+      _id,
+      userId,
+      label,
+      addressLine1,
+      city,
+      state,
+      postalCode,
+      country,
+      phone,
+      isDefault
+    } = address;
+    return {
+      id: _id,
+      userId,
+      label,
+      addressLine1,
+      city,
+      state,
+      postalCode,
+      country,
+      phone,
+      isDefault
+    };
+  },
+  sanitizeWallet: (wallet) => {
+    if (!wallet) return null;
+
+    const {
+      _id,
+      userId,
+      coin = 0,
+      diamond = 0,
+      balance = 0,
+      currencyId,
+    } = wallet;
+    return {
+      id: _id,
+      userId,
+      coin,
+      diamond,
+      balance,
+      currency: {
+        id: currencyId._id,
+        code: currencyId.code,
+        name: currencyId.name,
+        value: currencyId.value,
+      }
+    };
+  }
 };

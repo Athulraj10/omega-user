@@ -68,14 +68,14 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Currency",
     },
-    addresses_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Address",
-    },
-    wallet_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "UserWallet",
-    },
+    // addresses_id: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Address",
+    // },
+    // wallet_id: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "UserWallet",
+    // },
     ip_address: {
       system_ip: {
         type: String,

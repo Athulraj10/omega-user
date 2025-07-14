@@ -6,8 +6,10 @@ const { INACTIVE, ACTIVE, BLOCK, ROLES, INTERNAL_SERVER } = require("../services
 module.exports = {
   userTokenAuth: async (req, res, next) => {
     try {
-      const token = req.headers.authorization;
+      // console.log("Headers received:", req);
 
+      const token = req.headers.authorization;
+      // console.log({ token })
       if (!token) {
         return Response.errorResponseWithoutData(
           res,
@@ -17,15 +19,17 @@ module.exports = {
       }
 
       const tokenData = await jwToken.decode(token);
+      // console.log({ tokenData })
       if (!tokenData) {
         return Response.errorResponseWithoutData(res, res.locals.__("invalidToken"), 401);
       }
 
       const decoded = await jwToken.verify(tokenData);
+      // console.log({ decoded })
       if (!decoded?.id) {
         return Response.errorResponseWithoutData(res, res.locals.__("invalidToken"), 401);
       }
-
+      
       const user = await User.findOne(
         { _id: decoded.id, role: ROLES.USER.name },
         { status: 1, token: 1, role: 1, roleLevel: 1 }

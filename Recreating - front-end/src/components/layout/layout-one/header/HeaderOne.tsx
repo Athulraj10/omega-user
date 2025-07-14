@@ -6,7 +6,7 @@ import SidebarCart from "../../../model/SidebarCart";
 import MobileManuSidebar from "../../../model/MobileManuSidebar";
 import Dropdown from "react-bootstrap/Dropdown";
 
-function HeaderOne({ cartItems, wishlistItems }) {
+function  HeaderOne({ cartItems, wishlistItems }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeMainMenu, setActiveMainMenu] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -58,20 +58,20 @@ function HeaderOne({ cartItems, wishlistItems }) {
             {/* <!-- Header Top social End -->
                         <!-- Header Top Message Start --> */}
             <div className="col text-center header-top-center">
-              <div className="header-top-message">
+              {/* <div className="header-top-message">
                 World`s Fastest Online Shopping Destination
-              </div>
+              </div> */}
             </div>
             {/* <!-- Header Top Message End -->
                         <!-- Header Top Language Currency --> */}
             <div className="col header-top-right d-none d-lg-block">
               <div className="header-top-right-inner d-flex justify-content-end">
-                <Link className="gi-help" href="/faq">
+                {/* <Link className="gi-help" href="/faq">
                   Help?
                 </Link>
                 <Link className="gi-help" href="/track-order">
                   Track Order?
-                </Link>
+                </Link> */}
                 {/* <!-- Language Start --> */}
                 <Dropdown className="header-top-lan-curr header-top-lan">
                   <Dropdown.Toggle
@@ -90,7 +90,7 @@ function HeaderOne({ cartItems, wishlistItems }) {
                     <Dropdown.Item as="li" className="active">
                       English
                     </Dropdown.Item>
-                    <Dropdown.Item as="li">Italiano</Dropdown.Item>
+                    {/* <Dropdown.Item as="li">Italiano</Dropdown.Item> */}
                   </Dropdown.Menu>
                 </Dropdown>
 
@@ -102,7 +102,7 @@ function HeaderOne({ cartItems, wishlistItems }) {
                     className="dropdown-toggle"
                     id="dropdown-basic"
                   >
-                    Dollar
+                    Dirham
                     <i
                       className="fi-rr-angle-small-down"
                       aria-hidden="true"
@@ -111,11 +111,11 @@ function HeaderOne({ cartItems, wishlistItems }) {
 
                   <Dropdown.Menu as="ul">
                     <Dropdown.Item as="li" className="dropdown-item active">
-                      USD $
+                      AED D
                     </Dropdown.Item>
-                    <Dropdown.Item as="li" className="dropdown-item">
+                    {/* <Dropdown.Item as="li" className="dropdown-item">
                       EUR €
-                    </Dropdown.Item>
+                    </Dropdown.Item> */}
                   </Dropdown.Menu>
                 </Dropdown>
                 {/* <!-- Currency End --> */}
@@ -142,7 +142,7 @@ function HeaderOne({ cartItems, wishlistItems }) {
                       <i className="fi-rr-heart"></i>
                     </div>
                     <span className="gi-header-count gi-wishlist-count">
-                      {wishlistItems.length}
+                      {wishlistItems?.length ?? 0} 
                     </span>
                   </Link>
                   {/* <!-- Header Wishlist End -->
@@ -153,7 +153,7 @@ function HeaderOne({ cartItems, wishlistItems }) {
                       <span className="main-label-note-new"></span>
                     </div>
                     <span className="gi-header-count gi-cart-count">
-                      {cartItems.length}
+                      {cartItems?.length ?? 0}
                     </span>
                   </Link>
                   {/* <!-- Header Cart End -->

@@ -1,5 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Item {
   id: number;
@@ -19,87 +18,41 @@ interface Item {
   quantity: number;
 }
 
-export interface CounterState {
+export interface CompareState {
   compare: Item[];
 }
 
-const initialState: CounterState = {
-  compare: [
-    {
-      id: 63,
-      title: "Long lasting perfume",
-      image:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/50_1.jpg",
-      imageTwo:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/50_1.jpg",
-      category: "perfume",
-      newPrice: 25.0,
-      oldPrice: 30.0,
-      rating: 4,
-      date: "",
-      waight: "5 pcs",
-      location: "in Store, Online",
-      brand: "Bhisma Organice",
-      sku: 55555,
-      status: "Out Off Stock",
-      quantity: 1,
-    },
-    {
-      id: 2,
-      title: "Men's stylish printed shirt",
-      date: "",
-      image:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/32_1.jpg",
-      imageTwo:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/32_2.jpg",
-      category: "men's wear",
-      newPrice: 59.0,
-      oldPrice: 87.0,
-      location: "Online",
-      waight: "1 pcs",
-      brand: "Bhisma Organice",
-      sku: 24433,
-      rating: 4,
-      status: "Available",
-      quantity: 1,
-    },
-    {
-      id: 1831,
-      title: "Blue berry",
-      date: "",
-      image:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/23_1.jpg",
-      imageTwo:
-        process.env.NEXT_PUBLIC_URL + "/assets/img/product-images/23_1.jpg",
-      category: "Fresh Fruits",
-      newPrice: 11.0,
-      oldPrice: 12.0,
-      location: "Online",
-      brand: "Bhisma Organice",
-      sku: 23456,
-      waight: "500 g",
-      rating: 3,
-      status: "Out Of Stock",
-      quantity: 1,
-    },
-  ],
+const initialState: CompareState = {
+  compare: [],
 };
 
 export const compareSlice = createSlice({
   name: "compare",
   initialState,
   reducers: {
+    setCompare(state, action: PayloadAction<Item[]>) {
+      state.compare = action.payload;
+    },
     addCompare(state, action: PayloadAction<Item>) {
-      state.compare.push(action.payload);
+      const exists = state.compare.find((item) => item.id === action.payload.id);
+      if (!exists) {
+        state.compare.push(action.payload);
+      }
     },
     removeCompareItem(state, action: PayloadAction<number>) {
-      state.compare = state.compare.filter(
-        (item) => item.id !== action.payload
-      );
+      state.compare = state.compare.filter((item) => item.id !== action.payload);
+    },
+    clearCompare(state) {
+      state.compare = [];
     },
   },
 });
 
-export const { addCompare, removeCompareItem } = compareSlice.actions;
+export const {
+  setCompare,
+  addCompare,
+  removeCompareItem,
+  clearCompare,
+} = compareSlice.actions;
 
 export default compareSlice.reducer;

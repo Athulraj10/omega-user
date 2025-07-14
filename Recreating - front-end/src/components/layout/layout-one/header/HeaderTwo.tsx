@@ -6,24 +6,31 @@ import SidebarCart from "../../../model/SidebarCart";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/store";
-import { logout, setUserData } from "@/store/reducers/registrationSlice";
+import { login, logout, setUserData } from "@/store/reducers/registrationSlice";
 import { setSearchTerm } from "@/store/reducers/filterReducer";
+import { User } from "@/types";
+import { showErrorToast, showSuccessToast } from "@/components/toast-popup/Toastify";
 
-function HeaderTwo({ cartItems, wishlistItems }) {
+function HeaderTwo({ cartItems, wishlistItems ,isAuthenticated}) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.registration.isAuthenticated
+
+  const user = useSelector(
+    (state: RootState) => state?.registration?.user
   );
+
   const { searchTerm } = useSelector((state: RootState) => state.filter);
   const [searchInput, setSearchInput] = useState(searchTerm || "");
 
-  useEffect(() => {
-    const userdata = localStorage.getItem("login_user") ?? "";
-    const user = userdata !== "" ? JSON.parse(userdata) : null;
-    dispatch(setUserData({ isAuthenticated: userdata !== "", user }));
-  }, [dispatch]);
+  // console.log({ isAuthenticated })
+  // console.log(user, "user000")
+
+  // useEffect(() => {
+  //   const userdata = localStorage.getItem("login_user") ?? "";
+  //   const user = userdata !== "" ? JSON.parse(userdata) : null;
+  //   dispatch(setUserData({ isAuthenticated: userdata !== "", user }));
+  // }, [dispatch]);
 
   const handleSearch = (event: any) => {
     setSearchInput(event.target.value);
@@ -43,10 +50,42 @@ function HeaderTwo({ cartItems, wishlistItems }) {
     setIsCartOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("login_user");
-    dispatch(logout());
-    router.push("/");
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    if (user?.id) {
+
+    }
+    try {
+      const response = await fetch(`/api/users/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id
+        }),
+      });
+
+      const data = await response.json();
+      console.log('data from backend', data)
+      if (data?.meta?.code !== 200) {
+        showErrorToast(data?.meta?.message || "Logout failed")
+        return
+      }
+
+      if (data.meta.code === 200) {
+        localStorage.removeItem('userData');
+        localStorage.removeItem('token');
+        localStorage.removeItem("login_temp")
+        showSuccessToast("Logout successfully")
+        dispatch(logout(data))
+        router.push("/home")
+        return
+      }
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      alert(error.message || 'Logout failed. Please try again.');
+    }
   };
 
   return (
@@ -108,7 +147,6 @@ function HeaderTwo({ cartItems, wishlistItems }) {
                       <div className="gi-btn-desc">
                         <span className="gi-btn-title">Account</span>
                         <span className="gi-btn-stitle">
-                          {" "}
                           {isAuthenticated ? "Logout" : "Login"}
                         </span>
                       </div>
@@ -130,7 +168,7 @@ function HeaderTwo({ cartItems, wishlistItems }) {
                             </Link>
                           </li>
                           <li>
-                            <a className="dropdown-item" onClick={handleLogout}>
+                            <a className="dropdown-item" onClick={(e) => handleLogout(e)}>
                               Logout
                             </a>
                           </li>
@@ -170,9 +208,9 @@ function HeaderTwo({ cartItems, wishlistItems }) {
                       <span className="gi-btn-title">Wishlist</span>
                       <span className="gi-btn-stitle">
                         <b className="gi-wishlist-count">
-                          {wishlistItems.length}
+                          {wishlistItems?.length ?? 0}
                         </b>
-                        -items
+                        - items
                       </span>
                     </div>
                   </Link>
@@ -191,8 +229,8 @@ function HeaderTwo({ cartItems, wishlistItems }) {
                     <div className="gi-btn-desc">
                       <span className="gi-btn-title">Cart</span>
                       <span className="gi-btn-stitle">
-                        <b className="gi-cart-count">{cartItems.length}</b>
-                        -items
+                        <b className="gi-cart-count">{cartItems?.length ?? 0}</b>
+                        - items
                       </span>
                     </div>
                   </Link>

@@ -1,24 +1,18 @@
 const Wishlist = require("../../models/wishlist")
 const Product = require("../../models/product")
-const { successResponseData, errorResponseData } = require("../../services/response")
+const { successResponseData } = require("../../services/Response")
 
 const WishlistController = {
    // Get user's wishlist
    getWishlist: async (req, res) => {
       try {
-         const wishlist = await Wishlist.findOne({ user: req.user._id }).populate({
+         const authUserId = req.authUserId
+         const wishlist = await Wishlist.findOne({ user: authUserId }).populate({
             path: "products",
             select:
                "name price discountPrice images category brand ratingsAverage ratingsCount stock status",
          })
-
          if (!wishlist) {
-            // Create empty wishlist if it doesn't exist
-            const newWishlist = new Wishlist({
-               user: req.user._id,
-               products: [],
-            })
-            await newWishlist.save()
             return successResponseData(res, [], 200, "Wishlist fetched")
          }
 

@@ -61,7 +61,7 @@ module.exports = {
   },
   resendEmailValidation: (req, res, callback) => {
     const schema = Joi.object({
-      email: Joi.string().email().trim().required(),
+      userId: Joi.string().trim().required(),
     });
     const { error } = schema.validate(req);
     if (error) {
@@ -89,16 +89,14 @@ module.exports = {
 
   userRegisterValidation: (req, res, callback) => {
     const schema = Joi.object({
-      first_name: Joi.string().trim().required(),
-      last_name: Joi.string().trim().required(),
-      username: Joi.string().trim().required(),
+      firstName: Joi.string().trim().required(),
+      lastName: Joi.string().trim().required(),
       password: Joi.string().trim()
         // .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})'))
         .required(),
       email: Joi.string().email().trim().required(),
-      mobile_no: Joi.string().trim().max(15).required(),
-      device_code: Joi.string().trim().required(),
-      currency_code: Joi.string().trim().required(),
+      phone: Joi.string().trim().max(15).required(),
+      address: Joi.object().optional(),
     });
     const { error } = schema.validate(req);
     if (error) {
@@ -113,7 +111,7 @@ module.exports = {
 
   verifyEmailValidation: (req, res, callback) => {
     const schema = Joi.object({
-      email: Joi.string().email().trim().required(),
+      userId: Joi.string().trim().required(),
       otp: Joi.string().trim().max(4).required(),
     });
     const { error } = schema.validate(req);
@@ -141,10 +139,13 @@ module.exports = {
   },
   userDetailValidation: (req, res, callback) => {
     const schema = Joi.object({
-      user_id: Joi.string().trim().required()
+      userId: Joi.string().trim().required()
     });
+
+    console.log({ req })
     const { error } = schema.validate(req);
     if (error) {
+      console.log({ error })
       return Response.validationErrorResponseData(
         res,
         res.__(Helper.validationMessageKey("userDetailValidation", error))

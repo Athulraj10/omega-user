@@ -10,18 +10,18 @@ const FashionTwoBanners = ({
   hasPaginate = false,
   onError = () => {},
 }) => {
-  const { data, error } = useSWR("/api/fashiontwobanner", fetcher, {
-    onSuccess,
-    onError,
-  });
+  // const { data, error } = useSWR("/api/fashiontwobanner", fetcher, {
+  //   onSuccess,
+  //   onError,
+  // });
 
-  if (error) return <div>Failed to load products</div>;
-  if (!data)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );
+  // if (error) return <div>Failed to load products</div>;
+  // if (!data)
+  //   return (
+  //     <div>
+  //       <Spinner />
+  //     </div>
+  //   );
 
   return (
     <>

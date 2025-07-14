@@ -31,9 +31,9 @@ interface Item {
 }
 
 const Wishlist = ({
-  onSuccess = () => {},
+  onSuccess = () => { },
   hasPaginate = false,
-  onError = () => {},
+  onError = () => { },
 }) => {
   const wishlistItems = useSelector(
     (state: RootState) => state.wishlist.wishlist
@@ -56,20 +56,21 @@ const Wishlist = ({
     dispatch(addItem(data));
   };
 
-  const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
+  // const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
 
-  if (error) return <div>Failed to load products</div>;
-  if (!data)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );
+  // if (error) return <div>Failed to load products</div>;
+  // if (!data)
+  //   return (
+  //     <div>
+  //       <Spinner />
+  //     </div>
+  //   );
 
-  const getData = () => {
-    if (hasPaginate) return data.data;
-    else return data;
-  };
+  // const getData = () => {
+  //   if (hasPaginate) return data.data;
+  //   else return data;
+  // };
+
 
   return (
     <>
@@ -229,11 +230,11 @@ const Wishlist = ({
                     }}
                     className="deal-slick-carousel gi-product-slider"
                   >
-                    {getData().map((item: any, index: number) => (
+                    {/* {getData().map((item: any, index: number) => (
                       <SwiperSlide key={index}>
                         <ItemCard data={item} />
                       </SwiperSlide>
-                    ))}
+                    ))} */}
                   </Swiper>
                 </Fade>
               </div>

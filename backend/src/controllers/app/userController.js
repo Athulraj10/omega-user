@@ -1,11 +1,12 @@
 const bcrypt = require("bcrypt");
 const moment = require("moment");
 const Response = require("../../services/Response");
-const { makeRandomNumber, AppName, userEmailVerification, resendOtp } = require("../../services/Helper");
+const { makeRandomNumber, AppName, userEmailVerification, resendOtp, sanitizeUser, sanitizeAddress, sanitizeWallet } = require("../../services/Helper");
 const Mailer = require("../../services/Mailer");
 const { userRegisterValidation, verifyEmailValidation, resendEmailValidation, userNameValidation, usersSameDeviceValidation, userDetailValidation } = require("../../services/UserValidation");
-const { User, Otp, UserWallet } = require("../../models");
+const { User, Otp, UserWallet, Address, Currency } = require("../../models");
 const { FAIL, DELETE, INACTIVE, SUCCESS, INTERNAL_SERVER, ACTIVE, USER_MODEL, USER_WALLET } = require("../../services/Constants");
+const { default: mongoose } = require("mongoose");
 
 module.exports = {
   /**
@@ -18,17 +19,33 @@ module.exports = {
       const requestParams = req.body;
       // Below function will validate all the fields which we were passing from the body.
       userRegisterValidation(requestParams, res, async (validate) => {
+        console.log({ "req.body": req.body })
+        console.log({ validate })
         if (validate) {
           let checkEmailExist = await User.countDocuments({
             email: requestParams.email
           });
-          // console.log({checkEmailExist})
+          console.log({ checkEmailExist })
           if (checkEmailExist !== 0) {
-            return Response.errorResponseWithoutData(
-              res,
-              res.__('emailAlreadyRegistered'),
-              FAIL
-            )
+            let currentUser = await User.findOne({
+              email: requestParams.email
+            });
+            console.log({ currentUser })
+            if (currentUser && currentUser.status === "0") {
+              return Response.successResponseData(
+                res,
+                currentUser,
+                SUCCESS,
+                res.__('Validate OTP')
+              );
+            } else if (currentUser && currentUser.status === "1") {
+              console.log("user duplicate find")
+              return Response.errorResponseWithoutData(
+                res,
+                res.__('User Already Exist'),
+                FAIL
+              );
+            }
           } else {
             const minutesLater = new Date();
             const system_ip = req.clientIp;
@@ -36,29 +53,62 @@ module.exports = {
               req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
             const pass = await bcrypt.hash(requestParams.password, 10);
-
-
+            let currency = await Currency.findOne({ code: "AED" });
+            if (!currency) {
+              const createNewCurrency = await Currency.create({
+                name: 'Dirhams', code: 'AED', value: 1
+              })
+              if (createNewCurrency) {
+                currency = createNewCurrency
+              }
+            }
+            console.log({ currency })
             const UserObj = {
-              first_name: requestParams.first_name,
-              last_name: requestParams.last_name,
-              username: requestParams.username.toLowerCase(),
+              first_name: requestParams.firstName,
+              last_name: requestParams.lastName,
               email: requestParams.email,
               password: pass,
               password_text: requestParams.password,
-              mobile_no: requestParams.mobile_no,
-              device_code: requestParams.device_code.toLowerCase(),
+              mobile_no: requestParams.phone,
+              device_code: requestParams?.device_code?.toLowerCase() || "device_code",
               "ip_address.system_ip": system_ip,
               "ip_address.browser_ip": browser_ip,
-              status: INACTIVE
+              status: INACTIVE,
+              currency_id: currency?._id,
             };
 
-            let user = await User.create(UserObj);
+            const user = await User.create(UserObj);
 
-            let userWallet = await UserWallet.create({ userId: user?._id, coin: USER_WALLET.COIN, diamond: USER_WALLET.DIAMOND });
-
-            await User.updateOne({ _id: user?._id }, {
-              wallet_id: userWallet?._id
+            const userWallet = await UserWallet.create({
+              userId: user._id,
+              balance: USER_WALLET.BALANCE,
+              coin: USER_WALLET.COIN,
+              diamond: USER_WALLET.DIAMOND,
+              currencyId: currency._id
             });
+
+            const existingDefault = await Address.findOne({
+              userId: user._id,
+              isDefault: true,
+            });
+
+            console.log(existingDefault, "existingDefault")
+
+            const isFirstAddress = !(await Address.exists({ userId: user._id }));
+            console.log(isFirstAddress, "isFirstAddress")
+
+            console.log("!existingDefault || isFirstAddress00,", !existingDefault || isFirstAddress)
+            const address = await Address.create({
+              userId: user._id,
+              addressLine1: requestParams.address,
+              phone: requestParams.phone,
+              isDefault: !existingDefault || isFirstAddress
+            });
+
+
+            // user.wallet_id = userWallet._id;
+            // user.addresses_id = address._id;
+            await user.save();
 
             const restTokenExpire = minutesLater.setMinutes(
               minutesLater.getMinutes() + USER_MODEL.EMAIL_VERIFY_OTP_EXPIRY_MINUTE
@@ -79,13 +129,15 @@ module.exports = {
               appName: AppName,
               otp: otp
             };
+            console.log({ user })
 
-            Mailer.sendMail(requestParams.email, "registration", userEmailVerification, locals);
-
-            return Response.successResponseWithoutData(
+            // Mailer.sendMail(requestParams.email, "registration", userEmailVerification, locals);
+            const payload = sanitizeUser(user.toObject());
+            return Response.successResponseData(
               res,
-              res.__('UserAddedSuccessfully'),
-              SUCCESS
+              payload,
+              SUCCESS,
+              res.__('UserAddedSuccessfully')
             );
           }
         }
@@ -116,12 +168,15 @@ module.exports = {
   verifyEmail: async (req, res) => {
     try {
       const requestParams = req.body;
+      console.log({ requestParams })
       // Below function will validate all the fields which we are passing in the body.
       verifyEmailValidation(requestParams, res, async (validate) => {
         if (validate) {
-          let user = await User.findOne({
-            email: requestParams.email
-          }, { _id: 1, email_verify: 1 });
+          console.log({ validate })
+          let user = await User.findById(
+            requestParams.userId
+            , { _id: 1, email_verify: 1 });
+          console.log(user)
           if (user) {
             if (user.email_verify) {
               Response.errorResponseWithoutData(
@@ -135,6 +190,7 @@ module.exports = {
                 otp: requestParams.otp,
               }
               let otpResult = await Otp.findOne(otpQuery, { code_expiry: 1 });
+              console.log({ otpResult })
               if (otpResult) {
                 const system_ip = req.clientIp;
                 let browser_ip =
@@ -203,9 +259,7 @@ module.exports = {
       // Below function will validate all the fields which we are passing in the body.
       resendEmailValidation(requestParams, res, async (validate) => {
         if (validate) {
-          let user = await User.findOne({
-            email: requestParams.email
-          }, { _id: 1, first_name: 1, email: 1 });
+          let user = await User.findById(requestParams.userId, { _id: 1, first_name: 1, email: 1 });
           if (user) {
             var currentDate = new Date();
             const system_ip = req.clientIp;
@@ -213,7 +267,7 @@ module.exports = {
               req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
             var otpTokenExpire = new Date(currentDate.getTime() + USER_MODEL.EMAIL_VERIFY_OTP_EXPIRY_MINUTE * 60000); // 10 minutes * 60000 ms/min
-            const otp = await makeRandomNumber(4);
+            const otp = makeRandomNumber(4);
 
             const otpObj = {
               user_id: user._id,
@@ -234,7 +288,7 @@ module.exports = {
               otp: otp
             }
 
-            Mailer.sendMail(user.email, "resend otp", resendOtp, locals);
+            // Mailer.sendMail(user.email, "resend otp", resendOtp, locals);
 
             return Response.successResponseWithoutData(
               res,
@@ -306,26 +360,41 @@ module.exports = {
 */
   getUserDetail: async (req, res) => {
     try {
-      const requestParams = req.query;
-      // Below function will validate all the fields which we are passing in the body.
-      userDetailValidation(requestParams, res, async (validate) => {
-        if (validate) {
-          let user = await User.findOne({
-            _id: requestParams.user_id
-          }, { _id: 1 }).populate("wallet_id");
+      const userId = req.authUserId;
+      console.log({ userId });
 
-          return Response.successResponseData(
-            res,
-            user,
-            SUCCESS,
-            res.locals.__("success"),
-          );
-        }
-      });
+      if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+        return Response.validationErrorResponseData(
+          res,
+          res.__("Invalid user ID format")
+        );
+      }
+
+      const [userData, address, wallet] = await Promise.all([
+        User.findById(userId, { password: 0, password_text: 0 }),
+        Address.findOne({ userId }),
+        UserWallet.findOne({ userId }).populate('currencyId'),
+      ]);
+
+      const response = {
+        user: sanitizeUser(userData.toObject()),
+        address: sanitizeAddress(address.toObject()),
+        wallet: sanitizeWallet(wallet.toObject()),
+      };
+      console.log(response)
+
+      return Response.successResponseData(
+        res,
+        response,
+        SUCCESS,
+        res.locals.__("success")
+      );
     } catch (error) {
+      console.error("getUserDetail error:", error);
+
       return Response.errorResponseData(
         res,
-        res.__('internalError'),
+        res.__("internalError"),
         error
       );
     }

@@ -4,10 +4,10 @@ interface Policy {
   
   const policy: Policy[] = [
     {
-      questions: "Welcome to Grabit Store.",
+      questions: "Welcome to Omega Store.",
     },
     {
-      questions: "Grabit Websites",
+      questions: "Omega Websites",
     },
     {
       questions: "How browsing and vendor works?",

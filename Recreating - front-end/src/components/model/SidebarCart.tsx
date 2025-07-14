@@ -7,9 +7,11 @@ import QuantitySelector from "../quantity-selector/QuantitySelector";
 
 const SidebarCart = ({ closeCart, isCartOpen }: any) => {
   const cartItems = useSelector((state: RootState) => state.cart.items);
+
   const [subTotal, setSubTotal] = useState(0);
   const [vat, setVat] = useState(0);
   const dispatch = useDispatch();
+
 
   useEffect(() => {
     if (cartItems.length === 0) {
@@ -58,13 +60,13 @@ const SidebarCart = ({ closeCart, isCartOpen }: any) => {
                 <i onClick={handleSubmit} className="fi-rr-cross-small"></i>
               </Link>
             </div>
-            {cartItems.length === 0 ? (
+            {cartItems?.length === 0 ? (
               <div className="gi-pro-content cart-pro-title">
                 Your cart is empty.
               </div>
             ) : (
               <ul className="gi-cart-pro-items">
-                {cartItems.map((item: any, index: number) => (
+                {cartItems?.map((item: any, index: number) => (
                   <li key={index}>
                     <Link
                       onClick={handleSubmit}

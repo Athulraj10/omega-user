@@ -1,5 +1,6 @@
 const Transformer = require("object-transformer");
 const { OAuth2Client } = require("google-auth-library");
+const bcrypt = require('bcrypt');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const Response = require("../../services/Response");
 const {
@@ -13,7 +14,7 @@ const {
   PROFILE_PIC,
   ROLES,
 } = require("../../services/Constants");
-const { makeRandomNumber } = require("../../services/Helper");
+const { makeRandomNumber, sanitizeUser } = require("../../services/Helper");
 // const Mailer = require("../../services/Mailer");
 const { Login } = require("../../transformers/user/userAuthTransformer");
 const { User, Otp } = require("../../models");
@@ -208,7 +209,6 @@ module.exports = {
                   { role: ROLES.USER.name }
                 ]
               })
-                .populate("wallet_id")
                 .sort({ last_login: -1 });
             }
 
@@ -246,11 +246,11 @@ module.exports = {
                     const updatedUser = await User.findOneAndUpdate({ _id: user?._id }, tokenUpdate, { new: true });
 
 
-                    let userData = formatUserData(user)
+                    let userData = sanitizeUser(user.toObject())
 
                     return Response.successResponseData(
                       res,
-                      new Transformer.Single(userData, Login).parse(),
+                      userData,
                       SUCCESS,
                       res.locals.__("loginSucceeded"),
                       meta
@@ -371,8 +371,8 @@ module.exports = {
           let browser_ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
           const system_ip = req.clientIp;
-          await User.updateOne(
-            { username: requestParams.username.toLowerCase() },
+          await User.findByIdAndUpdate(
+            requestParams.userId,
             {
               $set: {
                 token: null,

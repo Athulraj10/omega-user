@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default values
-DEFAULT_APP_NAME="grabit-next"
+DEFAULT_APP_NAME="Omega-next"
 DEFAULT_PORT=3000
 DEFAULT_DOMAIN="yourdomain.com"
 

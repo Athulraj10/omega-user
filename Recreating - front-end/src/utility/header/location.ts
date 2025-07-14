@@ -1,28 +1,16 @@
 interface Location {
-    name: string;
-  }
-  
-  const location: Location[] = [
-    {
-      name: "Los Angeles",
-      
-    },
-    {
-      name: "Chicago",
-      
-    },
-    {
-      name: "Houston",
-      
-    },
-    {
-      name: "Phoenix",
-      
-    },
-    {
-      name: "San Diego",
-      
-    },
-  ];
-  export default location;
-  
+  name: string;
+}
+
+const location: Location[] = [
+  { name: "Dubai" },
+  { name: "Abu Dhabi" },
+  { name: "Sharjah" },
+  { name: "Ajman" },
+  { name: "Ras Al Khaimah" },
+  { name: "Fujairah" },
+  { name: "Umm Al Quwain" },
+  { name: "Al Ain" },
+];
+
+export default location;
