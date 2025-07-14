@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { addOrder, clearCart, setOrders } from "@/store/reducers/cartSlice";
 import { login } from "@/store/reducers/registrationSlice";
 import { showErrorToast, showSuccessToast } from "../toast-popup/Toastify";
-import DiscountCoupon from "../discount-coupon/DiscountCoupon";
+// import DiscountCoupon from "../discount-coupon/DiscountCoupon";
 
 interface Address {
   id: string;
@@ -220,7 +220,7 @@ const CheckOut = ({
       return;
     }
 
-    formData.id = `${Date.now()}`;
+    formData.id = `asdfasdfasdf`;
 
     const existingAddresses = JSON.parse(
       localStorage.getItem("shippingAddresses") || "[]"
@@ -371,7 +371,7 @@ const CheckOut = ({
     );
 
     if (!orderExists) {
-      dispatch(addOrder(newOrder));
+      // dispatch(addOrder(newOrder));
     } else {
       console.log(
         `Order with ID ${newOrder.orderId} already exists and won't be added again.`
@@ -514,9 +514,9 @@ const CheckOut = ({
                           <span className="text-right">${vat.toFixed(2)}</span>
                         </div>
                         <div>
-                          <DiscountCoupon
+                          {/* <DiscountCoupon
                             onDiscountApplied={handleDiscountApplied}
-                          />
+                          /> */}
                         </div>
                         <div className="gi-checkout-coupan-content">
                           <form

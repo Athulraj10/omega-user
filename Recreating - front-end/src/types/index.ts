@@ -119,7 +119,7 @@ export interface Wallet {
     value: number
   }
 }
-type BannerItem = {
+export type BannerItem = {
   titleLine1: string;
   titleLine2: string;
   offerText: string;
