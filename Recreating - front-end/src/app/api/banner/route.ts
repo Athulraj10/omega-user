@@ -3,8 +3,9 @@ import backend from "@/lib/backend";
 
 export async function GET(request: Request) {
   try {
-    const response = await backend.get("/api/v1/banner");
-    console.log(response, 'response from backend')
+    console.log({request:'in banne requrest'})
+    const response = await backend.get("/api/v1/banners");
+    // console.log(response, 'response from backend')
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
     // console.error("API error:", error);

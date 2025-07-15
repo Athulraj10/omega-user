@@ -9,46 +9,43 @@ module.exports = {
    // Get all banners with filtering and pagination
    getAllBanners: async (req, res) => {
       try {
-         const {
-            position,
-            status,
-            page = 1,
-            limit = 20,
-            search,
-         } = req.query
+         //          const {
+         //             position,
+         //             status,
+         //             page = 1,
+         //             limit = 20,
+         //             search,
+         //          } = req.query
+         // console.log({"req.query":req.query})
+         //          const query = {}
 
-         const query = {}
+         //          // Position filter
+         //          if (position) {
+         //             query.position = position
+         //          }
 
-         // Position filter
-         if (position) {
-            query.position = position
-         }
+         //          // Status filter
+         //          if (status) {
+         //             query.status = status
+         //          }
 
-         // Status filter
-         if (status) {
-            query.status = status
-         }
+         //          // Search filter
+         //          if (search) {
+         //             query.$text = { $search: search }
+         //          }
 
-         // Search filter
-         if (search) {
-            query.$text = { $search: search }
-         }
+         //          const skip = (page - 1) * limit
 
-         const skip = (page - 1) * limit
+         //          const banners = await Banner.find(query)
+         //             .sort({ priority: -1, createdAt: -1 })
+         //             .skip(skip)
+         //             .limit(parseInt(limit))
 
-         const banners = await Banner.find(query)
-            .sort({ priority: -1, createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
+         //          const total = await Banner.countDocuments(query)
 
-         const total = await Banner.countDocuments(query)
+         const banners = await Banner.find({ status: "1" }).sort({ createdAt: -1 });
 
-         return successResponseData(res, banners, 200, "Banners fetched successfully", {
-            total,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            totalPages: Math.ceil(total / limit),
-         })
+         return successResponseData(res, banners, 200, "Banners fetched successfully")
       } catch (err) {
          console.error("Get All Banners Error:", err)
          return errorResponseData(res, "Failed to fetch banners")

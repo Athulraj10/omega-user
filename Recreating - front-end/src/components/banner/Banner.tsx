@@ -5,9 +5,13 @@ import { Fade } from "react-awesome-reveal";
 import { Col, Row } from "react-bootstrap";
 import axios from "axios";
 import { BannerItem } from "@/types";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 
 const Banner = () => {
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+const [banners, setBanners] = useState<BannerItem[]>([]);
 
   useEffect(() => {
     const fetchBannerData = async () => {
@@ -37,23 +41,45 @@ const Banner = () => {
                       <span className="visually-hidden">Loading...</span>
                     </div>
                   </div>
-
-                ) : (
-                  banners.map((banner, index) => (
-                    <div className="gi-bnr-detail" key={index}>
-                      <div className="gi-bnr-info">
-                        <h2>
-                          {banner.titleLine1} <br /> {banner.titleLine2}
-                        </h2>
-                        <h3>
-                          {banner.offerText} <span>{banner.offerHighlight}</span>
-                        </h3>
-                        <Link href={banner.link || "/"} className="gi-btn-2">
-                          {banner.buttonText || "Shop now"}
-                        </Link>
-                      </div>
+                ) : banners.length === 1 ? (
+                  <div className="gi-bnr-detail">
+                    <div className="gi-bnr-info">
+                      <h2>
+                        {banners[0].titleLine1} <br /> {banners[0].titleLine2}
+                      </h2>
+                      <h3>
+                        {banners[0].offerText} <span>{banners[0].offerHighlight}</span>
+                      </h3>
+                      <Link href={banners[0].link || "/"} className="gi-btn-2">
+                        {banners[0].buttonText || "Shop now"}
+                      </Link>
                     </div>
-                  ))
+                  </div>
+                ) : (
+                  <Swiper
+                    modules={[Autoplay, Pagination]}
+                    autoplay={{ delay: 9000 }}
+                    pagination={{ clickable: true }}
+                    loop={true}
+                  >
+                    {banners.map((banner, index) => (
+                      <SwiperSlide key={index}>
+                        <div className="gi-bnr-detail">
+                          <div className="gi-bnr-info">
+                            <h2>
+                              {banner.titleLine1} <br /> {banner.titleLine2}
+                            </h2>
+                            <h3>
+                              {banner.offerText} <span>{banner.offerHighlight}</span>
+                            </h3>
+                            <Link href={banner.link || "/"} className="gi-btn-2">
+                              {banner.buttonText || "Shop now"}
+                            </Link>
+                          </div>
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
                 )}
               </div>
             </Col>
