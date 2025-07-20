@@ -1,0 +1,28 @@
+// import { NextRequest, NextResponse } from "next/server";
+// import Category from "../../../utility/data/category";
+
+// export async function POST(req: NextRequest) {
+//   return NextResponse.json(Category);
+// }
+
+
+import Category from "../../../utility/data/category";
+import { NextResponse } from "next/server";
+// import backend from "@/lib/backend";
+
+export async function GET(request: Request) {
+  try {
+    // console.log({request:'in banne requrest'})
+    // const response = await backend.get("/api/v1/banners");
+    // // console.log(response, 'response from backend')
+    // return NextResponse.json(response.data, { status: response.status });
+    return NextResponse.json(Category);
+  } catch (error: any) {
+    // console.error("API error:", error);
+
+    return NextResponse.json(
+      { message: error.response?.data?.message || "Internal server error" },
+      { status: error.response?.status || 500 }
+    );
+  }
+}

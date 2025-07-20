@@ -757,3 +757,13 @@
 {"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-15 00:00:36"}
 {"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-15 00:01:15"}
 {"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-15 00:01:15"}
+{"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-15 10:09:09"}
+{"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-15 10:09:09"}
+{"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-15 21:26:53"}
+{"level":"error","message":"Error connecting to database   connect ECONNREFUSED 0.0.0.0:27017","reason":{"commonWireVersion":0,"compatible":true,"heartbeatFrequencyMS":10000,"localThresholdMS":15,"logicalSessionTimeoutMinutes":null,"maxElectionId":null,"maxSetVersion":null,"servers":{},"setName":null,"stale":false,"type":"Unknown"},"service":"backend","stack":"MongoServerSelectionError: connect ECONNREFUSED 0.0.0.0:27017\n    at Timeout._onTimeout (D:\\DOWNLOADS\\omega\\omega-user\\backend\\node_modules\\mongoose\\node_modules\\mongodb\\lib\\sdam\\topology.js:278:38)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)","timestamp":"2025-07-15 21:27:23"}
+{"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-15 22:40:00"}
+{"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-15 22:40:00"}
+{"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-15 22:47:56"}
+{"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-15 22:47:56"}
+{"level":"info","message":"process.env.MONGO_CONNECTION_STRING :::mongodb://0.0.0.0:27017/local","service":"backend","timestamp":"2025-07-20 12:12:22"}
+{"level":"info","message":"Connected to database","service":"backend","timestamp":"2025-07-20 12:12:22"}
