@@ -6,8 +6,11 @@ import ResetPassword from "@/components/password/ResetPassword"
 const page = () => {
     return (
         <>
+
+
             <Breadcrumb title={"Reset Password"} />
             <ResetPassword />
+
         </>
     )
 }

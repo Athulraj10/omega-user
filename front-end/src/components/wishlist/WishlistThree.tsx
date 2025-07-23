@@ -54,7 +54,7 @@ const WishlistThree = () => {
   };
 
   const isInWishlist = (data: Item) => {
-    return wishlistItems.some((item: Item) => item.id === data.id);
+    return wishlistItems?.some((item: Item) => item.id === data.id);
   };
 
   const handleWishlist = (data: Item) => {

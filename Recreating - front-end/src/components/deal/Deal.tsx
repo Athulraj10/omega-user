@@ -25,7 +25,7 @@ const Deal = ({
     );
 
   const getData = () => {
-    if (hasPaginate) return data.data;
+    if (hasPaginate) return data;
     else return data;
   };
 
@@ -96,7 +96,7 @@ const Deal = ({
                         }}
                         className="slick-track"
                       >
-                        {getData()?.map((item: any, index: number) => (
+                        {data && getData()?.map((item: any, index: number) => (
                           <SwiperSlide key={index} className="slick-slide">
                             <ItemCard data={item} />
                           </SwiperSlide>

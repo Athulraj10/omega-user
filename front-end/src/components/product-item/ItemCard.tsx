@@ -58,6 +58,9 @@ interface FrontendProduct {
 }
 
 const ItemCard = ({ data }: { data: BackendProduct | FrontendProduct }) => {
+   if(!data){
+      return null
+   }
    const [show, setShow] = useState(false)
    const dispatch = useDispatch()
    const compareItems = useSelector((state: RootState) => state.compare?.compare || [])
@@ -129,7 +132,7 @@ const ItemCard = ({ data }: { data: BackendProduct | FrontendProduct }) => {
    }
 
    const isInWishlist = (productData: FrontendProduct) => {
-      return wishlistItems.some((item: any) => item.id === productData.id)
+      return wishlistItems?.some((item: any) => item.id === productData.id)
    }
 
    const handleWishlist = (productData: FrontendProduct) => {
