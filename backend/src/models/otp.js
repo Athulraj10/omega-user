@@ -8,8 +8,10 @@ const taskSchema = new mongoose.Schema(
     },
     otp: "string",
     code_expiry: "date",
+    createDate: "date",
+    updatedDate: "date",
   },
-  { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
+  { timestamps: { createDate: "createdAt", updatedDate: "updated_at" } }
 );
 
 module.exports = mongoose.model("Otp", taskSchema);

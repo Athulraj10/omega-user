@@ -11,75 +11,82 @@ import { showSuccessToast } from "../toast-popup/Toastify";
 import ZoomImage from "@/components/zoom-image/ZoomImage";
 import SizeOptions from "../product-item/SizeOptions";
 
-interface Item {
-  id: number;
-  title: string;
-  newPrice: number;
-  waight: string;
-  image: string;
-  imageTwo: string;
-  date: string;
+interface Category {
+  _id: string;
+  name: string;
+  id: string;
+}
+
+interface ProductData {
+  _id: string;
+  name: string;
+  description: string;
+  category: Category;
+  subcategory: Category;
+  price: number;
+  discountPrice: number;
+  images: string[];
+  stock: number;
+  minimumOrder: number;
+  sku: string;
   status: string;
   rating: number;
-  oldPrice: number;
   location: string;
   brand: string;
-  sku: number;
-  category: string;
-  quantity: number;
+  weight: string;
+  sale?: string;
 }
 
-interface Option {
-  value: string;
-  tooltip: string;
+interface QuickViewModalProps {
+  show: boolean;
+  handleClose: () => void;
+  data: ProductData;
 }
 
-const QuickViewModal = ({ show, handleClose, data }) => {
+const fallbackImage = "/assets/img/product-images/1_1.jpg";
+
+const QuickViewModal = ({ show, handleClose, data }: QuickViewModalProps) => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const [quantity, setQuantity] = useState(1);
 
-  const options: Option[] = [
-    { value: "250g", tooltip: "Small" },
-    { value: "500g", tooltip: "Medium" },
-    { value: "1kg", tooltip: "Large" },
-    { value: "2kg", tooltip: "Extra Large" },
-  ];
+  const handleCart = () => {
+    const isItemInCart = cartItems.some((item) => item._id === data._id);
 
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      return;
-    }
-
-    const subtotal = cartItems.reduce(
-      (acc, item) => acc + item.newPrice * item.quantity,
-      0
-    );
-  }, [cartItems]);
-
-  const handleCart = (data: Item) => {
-    const isItemInCart = cartItems.some((item: Item) => item.id === data.id);
+    const newItem = {
+      id: data._id,
+      title: data.name,
+      newPrice: data.discountPrice,
+      waight: data.weight,
+      image: data.images?.[0] || fallbackImage,
+      imageTwo: data.images?.[1] || fallbackImage,
+      date: new Date().toISOString(),
+      status: data.status,
+      rating: data.rating,
+      oldPrice: data.price,
+      location: data.location,
+      brand: data.brand,
+      sku: data.sku,
+      category: data.category?.name || "general",
+      quantity,
+    };
 
     if (!isItemInCart) {
-      dispatch(addItem({ ...data, quantity: quantity }));
-      showSuccessToast("Add product in Cart Successfully!", {
-        icon: false,
-      });
+      dispatch(addItem(newItem));
     } else {
-      const updatedCartItems = cartItems.map((item: Item) =>
-        item.id === data.id
+      const updatedCartItems = cartItems.map((item) =>
+        item.id === data._id
           ? {
               ...item,
               quantity: item.quantity + quantity,
-              price: item.newPrice + data.newPrice,
-            } // Increment quantity and update price
+              price: item.newPrice + data.discountPrice,
+            }
           : item
       );
       dispatch(updateItemQuantity(updatedCartItems));
-      showSuccessToast("Add product in Cart Successfully!", {
-        icon: false,
-      });
     }
+
+    showSuccessToast("Add product in Cart Successfully!", { icon: false });
   };
 
   return (
@@ -91,7 +98,7 @@ const QuickViewModal = ({ show, handleClose, data }) => {
         keyboard={false}
         className="modal fade quickview-modal"
         id="gi_quickview_modal"
-        tabIndex="-1"
+        tabIndex={-1}
         role="dialog"
       >
         <div className="modal-dialog-centered" role="document">
@@ -105,13 +112,14 @@ const QuickViewModal = ({ show, handleClose, data }) => {
             ></button>
             <Modal.Body>
               <Row>
-                <Col md={5} sm={12} className=" mb-767">
+                <Col md={5} sm={12} className="mb-767">
                   <div className="single-pro-img single-pro-img-no-sidebar">
                     <div className="single-product-scroll">
-                      <div className={`single-slide zoom-image-hover`}>
-                        <>
-                          <ZoomImage src={data.image} alt="" />
-                        </>
+                      <div className="single-slide zoom-image-hover">
+                        <ZoomImage
+                          src={data.images?.[0] || fallbackImage}
+                          alt={data.name}
+                        />
                       </div>
                     </div>
                   </div>
@@ -119,23 +127,22 @@ const QuickViewModal = ({ show, handleClose, data }) => {
                 <Col md={7} sm={12}>
                   <div className="quickview-pro-content">
                     <h5 className="gi-quick-title">
-                      <a href="/product-left-sidebar">{data.title}</a>
+                      <a href="#">{data.name}</a>
                     </h5>
+
                     <div className="gi-quickview-rating">
                       <StarRating rating={data.rating} />
                     </div>
 
                     <div className="gi-quickview-desc">
-                      Lorem Ipsum is simply dummy text of the printing and
-                      typesetting industry. Lorem Ipsum has been the industry`s
-                      standard dummy text ever since the 1900s,
+                      {data.description || "No description available."}
                     </div>
 
                     <div className="gi-quickview-price">
                       <span className="new-price">
-                        ${data.newPrice * data.quantity}
+                        ₹{data.discountPrice * quantity}
                       </span>
-                      <span className="old-price">${data.oldPrice}</span>
+                      <span className="old-price">₹{data.price}</span>
                     </div>
 
                     <div className="gi-pro-variation">
@@ -148,33 +155,22 @@ const QuickViewModal = ({ show, handleClose, data }) => {
                               "vegetables",
                               "accessorise",
                             ]}
-                            subCategory={data.category}
+                            subCategory={data.category?.name || ""}
                           />
-                          {/* <ul className="gi-opt-size">
-                            {options.map((data: any, index) => (
-                              <li key={index} onClick={() => handleClick(index)} className={activeIndex === index ? "active" : ""}>
-                                <a className="gi-opt-sz" data-tooltip={data.tooltip}>
-                                  {data.value}
-                                </a>
-                              </li>
-                            ))}
-                          </ul> */}
                         </div>
                       </div>
                     </div>
+
                     <div className="gi-quickview-qty">
                       <div className="qty-plus-minus gi-qty-rtl">
                         <QuantitySelector
                           quantity={quantity}
-                          id={data.id}
+                          id={data._id}
                           setQuantity={setQuantity}
                         />
                       </div>
-                      <div className="gi-quickview-cart ">
-                        <button
-                          onClick={() => handleCart(data)}
-                          className="gi-btn-1"
-                        >
+                      <div className="gi-quickview-cart">
+                        <button onClick={handleCart} className="gi-btn-1">
                           <i className="fi-rr-shopping-basket"></i> Add To Cart
                         </button>
                       </div>

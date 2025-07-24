@@ -16,12 +16,12 @@ const page = () => {
             <HeroSlider />
             <Category /> 
             <Deal />
-            <Banner />
+            {/* <Banner />
             <GroceryArrials />
             <OfferBanners />
             <Services />
             <Trending />
-            <LatestBlog />
+            <LatestBlog /> */}
         </>
     )
 }

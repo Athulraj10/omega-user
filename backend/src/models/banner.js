@@ -47,10 +47,29 @@ const bannerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    whiteLabelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "WhiteLabel",
+    },
     createDate: "date",
     updatedDate: "date",
   },
   { timestamps: { createDate: "createdAt", updatedDate: "updated_at" } }
 );
+
+// Ensure only one default banner per device
+bannerSchema.pre('save', async function(next) {
+  if (this.isDefault) {
+    await this.constructor.updateMany(
+      { 
+        _id: { $ne: this._id },
+        device: this.device,
+        whiteLabelId: this.whiteLabelId 
+      },
+      { isDefault: false }
+    );
+  }
+  next();
+});
 
 module.exports = mongoose.model("Banner", bannerSchema);

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema({
-    userId: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
@@ -13,29 +13,33 @@ const addressSchema = new mongoose.Schema({
         default: "Home"
     },
     addressLine1: {
-        type: Object,
+        type: String,
         maxLength: 200,
         required: true
+    },
+    addressLine2: {
+        type: String,
+        maxLength: 200
     },
     city: {
         type: String,
         maxLength: 100,
-        default:'default'
+        required: true
     },
     state: {
         type: String,
         maxLength: 100,
-        default:"default"
+        required: true
     },
     postalCode: {
         type: String,
         maxLength: 20,
-        default:"default"
+        required: true
     },
     country: {
         type: String,
         maxLength: 100,
-        default:"default"
+        required: true
     },
     phone: {
         type: String,
@@ -51,13 +55,6 @@ const addressSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-addressSchema.index(
-  { userId: 1, isDefault: 1 },
-  { unique: true, partialFilterExpression: { isDefault: true } }
-);
+addressSchema.index({ user: 1, isDefault: 1 }, { unique: true, partialFilterExpression: { isDefault: true } });
 
-
-
-const Address = mongoose.model("Address", addressSchema);
-
-module.exports = Address;
+module.exports = mongoose.model("Address", addressSchema);

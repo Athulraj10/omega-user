@@ -4,30 +4,57 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import ItemCard from "../product-item/ItemCard";
 import { Fade } from "react-awesome-reveal";
-import useSWR from "swr";
-import fetcher from "../fetcher-api/Fetcher";
 import DealendTimer from "../dealend-timer/DealendTimer";
 import Spinner from "../button/Spinner";
+import { useEffect, useState } from "react";
+import { showErrorToast } from "../toast-popup/Toastify";
 
 const Deal = ({
-  onSuccess = () => {},
+  onSuccess = () => { },
   hasPaginate = false,
-  onError = () => {},
+  onError = () => { },
 }) => {
-  const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
+  const [data, setData] = useState([])
+  const [error, setError] = useState(null)
 
-  if (error) return <div>Failed to load products</div>;
-  if (!data)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );
 
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`/api/deal`, {
+        method: 'get',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log('data from backend', data)
+
+      if (data.meta.code === 200) {
+        setData(data.data)
+        return
+      }
+    } catch (error: any) {
+      setError(error)
+      console.error('FETCH PRODUCTS ERROR:', error);
+    }
+  }
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+
+
+
+
+  if (error) <Spinner />
   const getData = () => {
     if (hasPaginate) return data;
     else return data;
   };
+
+  console.log({data})
 
   return (
     <>
@@ -96,7 +123,7 @@ const Deal = ({
                         }}
                         className="slick-track"
                       >
-                        {data && getData()?.map((item: any, index: number) => (
+                        {data&& data?.length && getData()?.map((item: any, index: number) => (
                           <SwiperSlide key={index} className="slick-slide">
                             <ItemCard data={item} />
                           </SwiperSlide>

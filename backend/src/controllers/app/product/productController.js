@@ -323,11 +323,13 @@ module.exports = {
       try {
          const { limit = 8 } = req.query
          const products = await Product.find({
-            status: "active",
-            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
-         }).limit(parseInt(limit))
+            status: "1",
+            // discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+         }).populate({path:"category",select:"name"}).populate({path:"subcategory",select:"name"}).limit(parseInt(limit))
+         console.log({products})
          return successResponseData(res, products, 200, "Deals")
       } catch (err) {
+         console.log({err})
          return errorResponseData(res, "Failed to fetch deals")
       }
    },
@@ -514,6 +516,108 @@ module.exports = {
          )
       } catch (err) {
          return errorResponseData(res, "Failed to compare products")
+      }
+   },
+
+   // Get featured deals
+   getFeaturedDeals: async (req, res) => {
+      try {
+         const { limit = 8 } = req.query
+         const products = await Product.find({
+            status: "active",
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+            isFeatured: true,
+         }).limit(parseInt(limit))
+         return successResponseData(res, products, 200, "Featured deals")
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch featured deals")
+      }
+   },
+
+   // Get flash sale deals
+   getFlashSaleDeals: async (req, res) => {
+      try {
+         const { limit = 8 } = req.query
+         const now = new Date()
+         const products = await Product.find({
+            status: "active",
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+            flashSaleEnd: { $gt: now },
+         }).limit(parseInt(limit))
+         return successResponseData(res, products, 200, "Flash sale deals")
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch flash sale deals")
+      }
+   },
+
+   // Get ending soon deals
+   getEndingSoonDeals: async (req, res) => {
+      try {
+         const { limit = 8 } = req.query
+         const now = new Date()
+         const endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000) // 24 hours from now
+         const products = await Product.find({
+            status: "active",
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+            discountEndDate: { $gte: now, $lte: endDate },
+         }).limit(parseInt(limit))
+         return successResponseData(res, products, 200, "Ending soon deals")
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch ending soon deals")
+      }
+   },
+
+   // Get deals by category
+   getDealsByCategory: async (req, res) => {
+      try {
+         const { category } = req.params
+         const { limit = 8 } = req.query
+         const products = await Product.find({
+            status: "active",
+            category: category,
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+         }).limit(parseInt(limit))
+         return successResponseData(res, products, 200, `Deals in ${category}`)
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch deals by category")
+      }
+   },
+
+   // Get deals by brand
+   getDealsByBrand: async (req, res) => {
+      try {
+         const { brand } = req.params
+         const { limit = 8 } = req.query
+         const products = await Product.find({
+            status: "active",
+            brand: brand,
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+         }).limit(parseInt(limit))
+         return successResponseData(res, products, 200, `Deals from ${brand}`)
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch deals by brand")
+      }
+   },
+
+   // Get deals by price range
+   getDealsByPriceRange: async (req, res) => {
+      try {
+         const { minPrice, maxPrice, limit = 8 } = req.query
+         const query = {
+            status: "active",
+            discountPrice: { $exists: true, $ne: null, $lt: "$price" },
+         }
+
+         if (minPrice || maxPrice) {
+            query.discountPrice = {}
+            if (minPrice) query.discountPrice.$gte = parseFloat(minPrice)
+            if (maxPrice) query.discountPrice.$lte = parseFloat(maxPrice)
+         }
+
+         const products = await Product.find(query).limit(parseInt(limit))
+         return successResponseData(res, products, 200, "Deals by price range")
+      } catch (err) {
+         return errorResponseData(res, "Failed to fetch deals by price range")
       }
    },
 }

@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       maxLength: 100,
     },
+    userName: {
+      type: String,
+      maxLength: 100,
+    },
     email: {
       type: String,
       maxLength: 100,
@@ -46,7 +50,6 @@ const userSchema = new mongoose.Schema(
     },
     mobile_no: {
       type: Number,
-      maxLength: 15,
     },
     device_code: {
       type: String,
@@ -68,14 +71,14 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Currency",
     },
-    // addresses_id: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Address",
-    // },
-    // wallet_id: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "UserWallet",
-    // },
+    addresses_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+    },
+    wallet_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserWallet",
+    },
     ip_address: {
       system_ip: {
         type: String,
@@ -97,11 +100,19 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: Object.values(ROLES).map(r => r.name),
-      default: ROLES.USER.name,
+      default: ROLES.ADMIN.name,
     },
     roleLevel: {
       type: Number,
-      default: ROLES.USER.level,
+      default: ROLES.ADMIN.level,
+    },
+    companyName: {
+      type: String,
+      maxLength: 100,
+    },
+    address: {
+      type: String,
+      maxLength: 255,
     },
 
   },
