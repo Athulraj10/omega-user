@@ -20,6 +20,7 @@ import {
 } from "@/store/reducers/filterReducer";
 
 const ProductPage = ({
+  productId,
   order = "",
   none = "none",
   lg = 12,
@@ -37,10 +38,14 @@ const ProductPage = ({
     selectedTags,
   } = useSelector((state: RootState) => state.filter);
 
-  const { data, error } = useSWR("/api/moreitem", fetcher, {
-    onSuccess,
-    onError,
-  });
+  const { data, error } = useSWR(
+    productId ? `/api/products/${productId}` : "/api/moreitem", 
+    fetcher, 
+    {
+      onSuccess,
+      onError,
+    }
+  );
 
   const handlePriceChange = useCallback(
     (min: number, max: number) => {
@@ -90,6 +95,45 @@ const ProductPage = ({
     else return data;
   };
 
+  // If we have a productId, we're showing a single product
+  if (productId) {
+    return (
+      <>
+        <Col
+          lg={lg}
+          md={12}
+          className={`gi-pro-rightside gi-common-rightside ${order}`}
+        >
+          {/* Single product content */}
+          <div className="single-pro-block">
+            <SingleProductContent productData={data} />
+          </div>
+          
+          {/* Single product tab */}
+          <ProductTeb productData={data} />
+        </Col>
+        
+        {/* Sidebar Area */}
+        <SidebarArea
+          min={minPrice}
+          max={maxPrice}
+          handleCategoryChange={handleCategoryChange}
+          handleWeightChange={handleWeightChange}
+          handleColorChange={handleColorChange}
+          handleTagsChange={handleTagsChange}
+          handlePriceChange={handlePriceChange}
+          selectedCategory={selectedCategory}
+          selectedWeight={selectedWeight}
+          selectedColor={selectedColor}
+          selectedTags={selectedTags}
+          none={none}
+          order={order}
+        />
+      </>
+    );
+  }
+
+  // Original logic for multiple products
   let filteredData = [...data];
 
   if (selectedCategory.length > 0) {

@@ -7,12 +7,17 @@ import fetcher from "../../fetcher-api/Fetcher";
 import Spinner from "@/components/button/Spinner";
 
 const RelatedProduct = ({
+  productId,
   className = '',
   onSuccess = () => {},
   hasPaginate = false,
   onError = () => {},
 }) => {
-  const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
+  const { data, error } = useSWR(
+    productId ? `/api/products/${productId}/related` : "/api/deal", 
+    fetcher, 
+    { onSuccess, onError }
+  );
 
   if (error) return <div>Failed to load products</div>;
   if (!data)

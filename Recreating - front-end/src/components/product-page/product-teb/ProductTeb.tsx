@@ -28,7 +28,7 @@ const getRegistrationData = () => {
   return null;
 };
 
-const ProductTeb = () => {
+const ProductTeb = ({ productData }: { productData?: any }) => {
   const login = useSelector(
     (state: RootState) => state.registration.isAuthenticated
   );
