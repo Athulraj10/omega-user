@@ -24,7 +24,7 @@ const page = () => {
                     </Row>
                 </div>
             </section>
-            <RelatedProduct productId={productId} />
+            {/* <RelatedProduct productId={productId} /> */}
         </>
     )
 }

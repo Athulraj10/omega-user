@@ -148,7 +148,8 @@ module.exports = {
    // Get product by ID
    getProductById: async (req, res) => {
       try {
-         const product = await Product.findById(req.params.id)
+         const product = await Product.findById(req.params.id).populate({ path: "seller", select: "userName companyName address" }).populate({ path: "category", select: "name" }).populate({ path: "subcategory", select: "name" })
+         console.log("product", product)
          if (!product) {
             return errorResponseData(res, "Product not found", 404)
          }
@@ -325,11 +326,11 @@ module.exports = {
          const products = await Product.find({
             status: "1",
             // discountPrice: { $exists: true, $ne: null, $lt: "$price" },
-         }).populate({path:"category",select:"name"}).populate({path:"subcategory",select:"name"}).limit(parseInt(limit))
-         console.log({products})
+         }).populate({ path: "category", select: "name" }).populate({ path: "subcategory", select: "name" }).limit(parseInt(limit))
+         console.log({ products })
          return successResponseData(res, products, 200, "Deals")
       } catch (err) {
-         console.log({err})
+         console.log({ err })
          return errorResponseData(res, "Failed to fetch deals")
       }
    },

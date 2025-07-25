@@ -1,10 +1,18 @@
-const fetcher = (url: string, postData: any) =>
-  fetch(url, {
-    method: "POST",
+const fetcher = (url: string, postData?: any) => {
+  const options: RequestInit = {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(postData),
-  }).then((res) => res.json());
+  };
+
+  if (postData) {
+    options.method = "POST";
+    options.body = JSON.stringify(postData);
+  } else {
+    options.method = "GET";
+  }
+
+  return fetch(url, options).then((res) => res.json());
+};
 
 export default fetcher;

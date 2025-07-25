@@ -3,8 +3,16 @@ const { user } = require("../../middlewares/user")
 
 const router = require("express").Router()
 
+// Product ID specific routes
+// @route   GET /api/products/:id
+router.get("/:id", ProductController.getProductById)
+
+
 // Public routes (no authentication required)
+
 // @route   GET /api/products
+
+
 router.get("/", ProductController.listProduct)
 
 // @route   GET /api/products/search
@@ -37,10 +45,6 @@ router.get("/brands", ProductController.getBrands)
 // Product detail routes (must come before :id routes to avoid conflicts)
 // @route   GET /api/products/:slug
 router.get("/slug/:slug", ProductController.getProductBySlug)
-
-// Product ID specific routes
-// @route   GET /api/products/:id
-router.get("/:id", ProductController.getProductById)
 
 // @route   GET /api/products/:id/similar
 router.get("/:id/similar", ProductController.getSimilarProducts)

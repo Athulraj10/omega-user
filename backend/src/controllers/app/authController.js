@@ -196,10 +196,6 @@ module.exports = {
               filters.push({ mobile_no: requestParams.mobile_no });
             }
 
-            if (requestParams.device_code) {
-              filters.push({ device_code: requestParams.device_code.toLowerCase() });
-            }
-
             let user;
 
             if (filters.length > 0) {

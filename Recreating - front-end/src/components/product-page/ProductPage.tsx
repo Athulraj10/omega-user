@@ -1,16 +1,17 @@
 "use client";
-import { useCallback } from "react";
-import SidebarArea from "../shop-sidebar/sidebar-area/SidebarArea";
-import { Swiper, SwiperSlide } from "swiper/react";
-import StarRating from "../stars/StarRating";
-import ProductTeb from "./product-teb/ProductTeb";
-import { Col } from "react-bootstrap";
-import SingleProductContent from "./single-product-content/SingleProductContent";
+
 import useSWR from "swr";
-import fetcher from "../fetcher-api/Fetcher";
-import Spinner from "../button/Spinner";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { Col } from "react-bootstrap";
+import { Swiper, SwiperSlide } from "swiper/react";
+
+import Spinner from "../button/Spinner";
+import StarRating from "../stars/StarRating";
+import SidebarArea from "../shop-sidebar/sidebar-area/SidebarArea";
+import ProductTeb from "./product-teb/ProductTeb";
+import SingleProductContent from "./single-product-content/SingleProductContent";
+import fetcher from "../fetcher-api/Fetcher";
+
 import {
   setRange,
   setSelectedCategory,
@@ -18,17 +19,17 @@ import {
   setSelectedTags,
   setSelectedWeight,
 } from "@/store/reducers/filterReducer";
+import { RootState } from "@/store";
 
 const ProductPage = ({
   productId,
   order = "",
   none = "none",
   lg = 12,
-  onSuccess = () => {},
   hasPaginate = false,
-  onError = () => {},
 }) => {
   const dispatch = useDispatch();
+
   const {
     selectedCategory,
     selectedWeight,
@@ -38,64 +39,49 @@ const ProductPage = ({
     selectedTags,
   } = useSelector((state: RootState) => state.filter);
 
-  const { data, error } = useSWR(
-    productId ? `/api/products/${productId}` : "/api/moreitem", 
-    fetcher, 
-    {
-      onSuccess,
-      onError,
-    }
+  // SWR: Dynamically fetch product or fallback to /api/moreitem
+  const { data, error, isLoading } = useSWR(
+    productId ? `/api/products/${productId}` : "/api/moreitem",
+    fetcher
   );
 
-  const handlePriceChange = useCallback(
-    (min: number, max: number) => {
-      dispatch(setRange({ min, max }));
-    },
-    [dispatch]
-  );
-
-  if (error) return <div>Failed to load products</div>;
-  if (!data)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );
+  const handlePriceChange = (min: number, max: number) => {
+    dispatch(setRange({ min, max }));
+  };
 
   const handleCategoryChange = (category) => {
-    const updatedCategory = selectedCategory.includes(category)
-      ? selectedCategory.filter((cat) => cat !== category)
+    const updated = selectedCategory.includes(category)
+      ? selectedCategory.filter((c) => c !== category)
       : [...selectedCategory, category];
-    dispatch(setSelectedCategory(updatedCategory));
+    dispatch(setSelectedCategory(updated));
   };
 
   const handleWeightChange = (weight) => {
-    const updatedweight = selectedWeight.includes(weight)
-      ? selectedWeight.filter((wet) => wet !== weight)
+    const updated = selectedWeight.includes(weight)
+      ? selectedWeight.filter((w) => w !== weight)
       : [...selectedWeight, weight];
-    dispatch(setSelectedWeight(updatedweight));
+    dispatch(setSelectedWeight(updated));
   };
 
   const handleColorChange = (color) => {
-    const updatedcolor = selectedColor.includes(color)
-      ? selectedColor.filter((clr) => clr !== color)
+    const updated = selectedColor.includes(color)
+      ? selectedColor.filter((c) => c !== color)
       : [...selectedColor, color];
-    dispatch(setSelectedColor(updatedcolor));
+    dispatch(setSelectedColor(updated));
   };
 
   const handleTagsChange = (tag) => {
-    const updatedtag = selectedTags.includes(tag)
-      ? selectedTags.filter((tg) => tg !== tag)
+    const updated = selectedTags.includes(tag)
+      ? selectedTags.filter((t) => t !== tag)
       : [...selectedTags, tag];
-    dispatch(setSelectedTags(updatedtag));
+    dispatch(setSelectedTags(updated));
   };
 
-  const getData = () => {
-    if (hasPaginate) return data.data;
-    else return data;
-  };
-
-  // If we have a productId, we're showing a single product
+  if (isLoading) return <Spinner />;
+  if (error) return <div>Failed to load product data</div>;
+  if (!data) return <div>No product found</div>;
+  console.log("single product data", data)
+  // Render Single Product View
   if (productId) {
     return (
       <>
@@ -104,16 +90,12 @@ const ProductPage = ({
           md={12}
           className={`gi-pro-rightside gi-common-rightside ${order}`}
         >
-          {/* Single product content */}
           <div className="single-pro-block">
-            <SingleProductContent productData={data} />
+            <SingleProductContent productData={data.data} />
           </div>
-          
-          {/* Single product tab */}
-          <ProductTeb productData={data} />
+          <ProductTeb productData={data.data} />
         </Col>
-        
-        {/* Sidebar Area */}
+
         <SidebarArea
           min={minPrice}
           max={maxPrice}
@@ -133,7 +115,7 @@ const ProductPage = ({
     );
   }
 
-  // Original logic for multiple products
+  // Render Multiple Products View
   let filteredData = [...data];
 
   if (selectedCategory.length > 0) {
@@ -167,12 +149,6 @@ const ProductPage = ({
         md={12}
         className={`gi-pro-rightside gi-common-rightside ${order}`}
       >
-        {/* <!-- Single product content Start --> */}
-        {/* <div className="single-pro-block">
-          <SingleProductContent />
-        </div> */}
-        {/* <!--Single product content End -->
-                    <!-- Add More and get discount content Start --> */}
         <div className="single-add-more m-tb-40">
           <Swiper
             loop={true}
@@ -180,43 +156,15 @@ const ProductPage = ({
             slidesPerView={3}
             spaceBetween={20}
             breakpoints={{
-              0: {
-                slidesPerView: 1,
-                spaceBetween: 20,
-              },
-              320: {
-                slidesPerView: 1,
-                spaceBetween: 20,
-              },
-              425: {
-                slidesPerView: 1,
-                spaceBetween: 20,
-              },
-              640: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-              },
-              768: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-              },
-              1024: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-              },
-              1025: {
-                slidesPerView: 3,
-                spaceBetween: 20,
-              },
+              0: { slidesPerView: 1 },
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
             }}
-            style={{ overflow: "hidden" }}
             className="gi-add-more-slider owl-carousel"
           >
-            {getData().map((item: any, index: number) => (
+            {filteredData.map((item, index) => (
               <SwiperSlide key={index} className="add-more-item">
-                <a href="" className="gi-btn-2">
-                  +
-                </a>
+                <a href="" className="gi-btn-2">+</a>
                 <div className="add-more-img">
                   <img src={item.image} alt="product" />
                 </div>
@@ -234,12 +182,8 @@ const ProductPage = ({
             ))}
           </Swiper>
         </div>
-
-        {/* <!-- Single product tab start --> */}
         <ProductTeb />
-        {/* <!-- product details description area end --> */}
       </Col>
-      {/* <!-- Sidebar Area Start --> */}
 
       <SidebarArea
         min={minPrice}

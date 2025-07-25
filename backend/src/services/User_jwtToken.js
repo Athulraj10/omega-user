@@ -6,20 +6,7 @@ module.exports.issueUser = function (payload) {
     {
       id: payload.id,
     },
-    process.env.JWT_USER_SECRETKEY,
-    { algorithm: "HS512" }
-  );
-};
-
-// Generates an uploads token
-module.exports.issueDemoUser = function (payload) {
-  return jwt.sign(
-    {
-      demo: payload.demo,
-      exp: payload.exp,
-      id: payload.id,
-    },
-    process.env.JWT_USER_SECRETKEY,
+    process.env.JWT_USER_SECRETKEY || "ksdafjvt8uigojcc329ru",
     { algorithm: "HS512" }
   );
 };
@@ -27,7 +14,7 @@ module.exports.issueDemoUser = function (payload) {
 // Verifies uploads token
 module.exports.verify = function (token, callback) {
   try {
-    return jwt.verify(token, process.env.JWT_USER_SECRETKEY, {}, callback);
+    return jwt.verify(token, process.env.JWT_USER_SECRETKEY || "ksdafjvt8uigojcc329ru", {}, callback);
   } catch (err) {
     return "error";
   }

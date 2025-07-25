@@ -14,7 +14,7 @@ const RelatedProduct = ({
   onError = () => {},
 }) => {
   const { data, error } = useSWR(
-    productId ? `/api/products/${productId}/related` : "/api/deal", 
+    productId ? `/api/products/related/${productId}` : "/api/deal", 
     fetcher, 
     { onSuccess, onError }
   );

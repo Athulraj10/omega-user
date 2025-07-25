@@ -9,13 +9,17 @@ import QuantitySelector from "../../quantity-selector/QuantitySelector";
 import Spinner from "@/components/button/Spinner";
 import ZoomImage from "@/components/zoom-image/ZoomImage";
 import StarRating from "../../stars/StarRating";
+import { useSelector } from "react-redux";
 
 const SingleProductContent = ({
   productData,
-  onSuccess = () => {},
+  onSuccess = () => { },
   hasPaginate = false,
-  onError = () => {},
+  onError = () => { },
 }) => {
+  const authUser = useSelector((state: any) => state.registration.isAuthenticated);
+  console.log("authUser", authUser)
+
   const [quantity, setQuantity] = useState(1);
   const [isSliderInitialized, setIsSliderInitialized] = useState(false);
   const initialRef: any = null;
@@ -57,12 +61,12 @@ const SingleProductContent = ({
   };
 
   // If productData is provided, use it directly, otherwise fetch from API
-  const { data, error } = productData 
+  const { data, error } = productData
     ? { data: productData, error: null }
     : useSWR("/api/productphoto", fetcher, {
-        onSuccess,
-        onError,
-      });
+      onSuccess,
+      onError,
+    });
 
   if (error) return <div>Failed to load products</div>;
   if (!data)
@@ -73,10 +77,10 @@ const SingleProductContent = ({
     );
 
   const getData = () => {
-    if (hasPaginate) return data.data;
-    else return data;
+    if (hasPaginate) return data;
+    else return [data];
   };
-
+  console.log("getData", getData())
   return (
     <>
       <div className="single-pro-inner">
@@ -124,12 +128,16 @@ const SingleProductContent = ({
               <h5 className="gi-single-title">
                 {data?.name || "Product Name"}
               </h5>
+
               <div className="gi-single-rating-wrap">
                 <div className="gi-single-rating">
                   <StarRating rating={data?.rating || 0} />
                 </div>
                 <span className="gi-read-review">
-                  |&nbsp;&nbsp;<a href="#gi-spt-nav-review">{data?.reviews?.length || 0} Ratings</a>
+                  |&nbsp;&nbsp;
+                  <a href="#gi-spt-nav-review">
+                    {data?.reviews?.length || 0} Ratings
+                  </a>
                 </span>
               </div>
 
@@ -156,6 +164,7 @@ const SingleProductContent = ({
                   </span>
                 </div>
               </div>
+
               <div className="gi-single-desc">
                 {data?.description || "No description available."}
               </div>
@@ -188,20 +197,29 @@ const SingleProductContent = ({
                   </div>
                 </div>
               )}
+
+              {authUser && (
               <div className="gi-single-qty">
-                <div className="qty-plus-minus ">
-                  <QuantitySelector setQuantity={setQuantity} quantity={quantity} id={data._id || data.id} />
+                <div className="qty-plus-minus">
+                  <QuantitySelector
+                    setQuantity={setQuantity}
+                    quantity={quantity}
+                    id={data._id || data.id}
+                  />
                 </div>
+
                 <div className="gi-single-cart">
                   <button className="btn btn-primary gi-btn-1">
                     Add To Cart
                   </button>
                 </div>
+
                 <div className="gi-single-wishlist">
                   <a className="gi-btn-group wishlist" title="Wishlist">
                     <i className="fi-rr-heart"></i>
                   </a>
                 </div>
+
                 <div className="gi-single-quickview">
                   <a
                     href="#"
@@ -215,8 +233,10 @@ const SingleProductContent = ({
                   </a>
                 </div>
               </div>
+              )}
             </div>
           </Col>
+
         </Row>
       </div>
     </>

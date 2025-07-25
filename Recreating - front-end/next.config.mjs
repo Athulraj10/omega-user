@@ -1,18 +1,17 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
+  trailingSlash: true,
+  async rewrites() {
+    if (process.env.NODE_ENV === "development") {
+      return []; // Don't rewrite in dev
+    }
 
-    // output: 'export',
-    // Uncomment when add value for NEXT_PUBLIC_PATH in .env.production or .env.development
-    // basePath: process.env.NEXT_PUBLIC_PATH,
-    trailingSlash: true,
-    async rewrites() {
-        return [
-            {
-                source: '/api/:path*',
-                destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
-            },
-        ];
-    },
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

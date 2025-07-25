@@ -16,6 +16,7 @@ const ProductSchema = new mongoose.Schema({
     ratingsCount: { type: Number, default: 0 },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     
+    
     // Additional fields for user-side display
     sale: { type: String, default: '' }, // "Sale", "New", "Hot", etc.
     location: { type: String, default: 'Online' },
