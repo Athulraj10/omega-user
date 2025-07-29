@@ -11,7 +11,7 @@ import { setSearchTerm } from "@/store/reducers/filterReducer";
 import { User } from "@/types";
 import { showErrorToast, showSuccessToast } from "@/components/toast-popup/Toastify";
 
-function HeaderTwo({ cartItems, wishlistItems ,isAuthenticated}) {
+function HeaderTwo({ cartItems, wishlistItems, cartCount, wishlistCount, isAuthenticated}) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -208,7 +208,7 @@ function HeaderTwo({ cartItems, wishlistItems ,isAuthenticated}) {
                       <span className="gi-btn-title">Wishlist</span>
                       <span className="gi-btn-stitle">
                         <b className="gi-wishlist-count">
-                          {wishlistItems?.length ?? 0}
+                          {wishlistCount ?? wishlistItems?.length ?? 0}
                         </b>
                         - items
                       </span>
@@ -229,7 +229,7 @@ function HeaderTwo({ cartItems, wishlistItems ,isAuthenticated}) {
                     <div className="gi-btn-desc">
                       <span className="gi-btn-title">Cart</span>
                       <span className="gi-btn-stitle">
-                        <b className="gi-cart-count">{cartItems?.length ?? 0}</b>
+                        <b className="gi-cart-count">{cartCount ?? cartItems?.length ?? 0}</b>
                         - items
                       </span>
                     </div>

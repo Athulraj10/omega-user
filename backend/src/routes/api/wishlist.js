@@ -20,4 +20,10 @@ router.delete("/clear", WishlistController.clearWishlist)
 // Check if product is in wishlist
 router.get("/check/:productId", WishlistController.checkWishlistStatus)
 
+// Get wishlist count
+router.get("/count", WishlistController.getWishlistCount)
+
+// Move item from wishlist to cart
+router.post("/move-to-cart", WishlistController.moveToCart)
+
 module.exports = router

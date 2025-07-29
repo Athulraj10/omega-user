@@ -4,11 +4,11 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import CategoryItemTwo from "../product-item/CategoryItemTwo";
 import { Fade } from "react-awesome-reveal";
-import useSWR from "swr";
-import fetcher from "../fetcher-api/Fetcher";
 import Spinner from "../button/Spinner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useCategories } from "@/hooks/useCategories";
+import React from "react";
 
 const Category = ({
   onSuccess = () => {},
@@ -16,22 +16,58 @@ const Category = ({
   onError = () => {},
 }) => {
   const { direction } = useSelector((state: RootState) => state.theme);
-  const { data, error } = useSWR("/api/fashiontwocategory", fetcher, {
-    onSuccess,
-    onError,
-  });
+  const { categories, loading, error } = useCategories();
 
-  if (error) return <div>Failed to load products</div>;
-  if (!data)
+  // Handle success and error callbacks
+  React.useEffect(() => {
+    if (categories.length > 0) {
+      onSuccess();
+    }
+  }, [categories, onSuccess]);
+
+  React.useEffect(() => {
+    if (error) {
+      onError();
+    }
+  }, [error, onError]);
+
+  if (loading) {
     return (
-      <div>
-        <Spinner />
-      </div>
+      <Fade direction="up" triggerOnce>
+        <section
+          className="gi-category body-bg padding-tb-40 wow fadeInUp"
+          data-wow-duration="2s"
+        >
+          <div className="container">
+            <div className="text-center py-5">
+              <Spinner />
+            </div>
+          </div>
+        </section>
+      </Fade>
     );
+  }
+
+  if (error) {
+    return (
+      <Fade direction="up" triggerOnce>
+        <section
+          className="gi-category body-bg padding-tb-40 wow fadeInUp"
+          data-wow-duration="2s"
+        >
+          <div className="container">
+            <div className="text-center py-5">
+              <p className="text-danger">Failed to load categories</p>
+            </div>
+          </div>
+        </section>
+      </Fade>
+    );
+  }
 
   const getData = () => {
-    if (hasPaginate) return data.data;
-    else return data;
+    if (hasPaginate) return categories;
+    else return categories;
   };
 
   return (
@@ -86,7 +122,7 @@ const Category = ({
                 className={`gi-category-block owl-carousel ${direction == "RTL" ? "rtl" : "ltr"}`}
               >
                 {getData().map((item: any, index: number) => (
-                  <SwiperSlide key={index} className="owl-item">
+                  <SwiperSlide key={item.id || index} className="owl-item">
                     <div className="gi-cat-box gi-cat-box-1 p-0">
                       <CategoryItemTwo data={item} />
                     </div>

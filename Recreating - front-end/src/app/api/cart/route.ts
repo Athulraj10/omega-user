@@ -1,23 +1,27 @@
-import { NextResponse } from "next/server";
 import backend from "@/lib/backend";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
-    // console.log("Auth header:", authHeader);
 
-    const response = await backend.get("/api/v1/cart", {
+    console.log("Getting cart data");
+
+    const { data, status } = await backend.get("/api/v1/cart", {
       headers: {
         Authorization: authHeader || "",
       },
     });
 
-    return NextResponse.json(response.data, { status: response.status });
+    console.log("Backend response status:", status);
+    console.log("Cart data from backend:", data);
+
+    return NextResponse.json(data, { status });
   } catch (error: any) {
-    // console.error("API error:", error);
+    console.error("Error getting cart:", error?.response?.data || error.message);
 
     return NextResponse.json(
-      { message: error.response?.data?.message || "Internal server error" },
+      { message: error.response?.data?.message || "Failed to get cart" },
       { status: error.response?.status || 500 }
     );
   }

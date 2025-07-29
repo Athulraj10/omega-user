@@ -1,19 +1,20 @@
-"use client";
-import { useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import ItemCard from "../product-item/ItemCard";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store";
-import { addItem } from "../../store/reducers/cartSlice";
-import { Fade } from "react-awesome-reveal";
-import { Col, Row } from "react-bootstrap";
-import useSWR from "swr";
-import fetcher from "../fetcher-api/Fetcher";
-import Spinner from "../button/Spinner";
-import { removeWishlist } from "@/store/reducers/wishlistSlice";
+"use client"
+import { useEffect, useState } from "react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import ItemCard from "../product-item/ItemCard"
+import { useDispatch, useSelector } from "react-redux"
+import { RootState } from "../../store"
+import { addItem } from "../../store/reducers/cartSlice"
+import { Fade } from "react-awesome-reveal"
+import { Col, Row } from "react-bootstrap"
+import useSWR from "swr"
+import fetcher from "../fetcher-api/Fetcher"
+import Spinner from "../button/Spinner"
+import { useCartWishlist } from "../../hooks/useCartWishlist"
+import { removeWishlist } from "../../store/reducers/wishlistSlice";
 
 interface Item {
-  id: number;
+  id: string;
   title: string;
   newPrice: number;
   waight: string;
@@ -25,7 +26,7 @@ interface Item {
   oldPrice: number;
   location: string;
   brand: string;
-  sku: number;
+  sku: string;
   category: string;
   quantity: number;
 }
@@ -35,42 +36,111 @@ const Wishlist = ({
   hasPaginate = false,
   onError = () => { },
 }) => {
-  const wishlistItems = useSelector(
+  const dispatch = useDispatch();
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString("en-GB"));
+
+  // Use the new cart/wishlist hook for backend integration
+  const {
+    cartData,
+    cartLoading,
+    isAuthenticated,
+    userToken,
+    refreshCart,
+    getCartCount,
+    addToCart,
+    removeFromCart,
+    addToWishlist,
+    removeFromWishlist,
+    checkWishlistStatus,
+    isInWishlist,
+    wishlistLoading,
+    wishlistData,
+    refreshWishlist
+  } = useCartWishlist();
+
+  // Fallback to Redux state for backward compatibility
+  const reduxWishlistItems = useSelector(
     (state: RootState) => state.wishlist.wishlist
   );
-  const [currentDate, setCurrentDate] = useState(
-    new Date().toLocaleDateString("en-GB")
-  );
+
+  // Use backend data if available, otherwise fallback to Redux
+  const wishlistItems = wishlistData?.items || reduxWishlistItems || [];
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString("en-GB"));
   }, []);
 
-  const dispatch = useDispatch();
+  // Debug logging
+  useEffect(() => {
+    console.log("Wishlist component debug:");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("wishlistLoading:", wishlistLoading);
+    console.log("wishlistData:", wishlistData);
+    console.log("reduxWishlistItems:", reduxWishlistItems);
+    console.log("final wishlistItems:", wishlistItems);
+    console.log("wishlistData?.items:", wishlistData?.items);
+    console.log("wishlistData?.totalItems:", wishlistData?.totalItems);
+    console.log("reduxWishlistItems length:", reduxWishlistItems?.length);
+  }, [isAuthenticated, wishlistLoading, wishlistData, reduxWishlistItems, wishlistItems]);
 
-  const handleRemoveFromwishlist = (id: number) => {
-    dispatch(removeWishlist(id));
+  const handleRemoveFromwishlist = (id: string) => {
+    // Try to use backend API first
+    if (isAuthenticated && userToken) {
+      removeFromWishlist(id);
+    } else {
+      // Fallback to Redux (convert string id to number for Redux)
+      const numericId = parseInt(id.replace(/[^0-9]/g, "")) || Math.floor(Math.random() * 10000);
+      dispatch(removeWishlist(numericId));
+    }
   };
 
   const handleCart = (data: Item) => {
-    dispatch(addItem(data));
+    // Try to use backend API first
+    if (isAuthenticated && userToken) {
+      addToCart(data.id, data.quantity || 1);
+    } else {
+      // Fallback to Redux - transform data to match Redux structure
+      const reduxItem = {
+        _id: parseInt(data.id.replace(/[^0-9]/g, "")) || Math.floor(Math.random() * 10000),
+        title: data.title,
+        newPrice: data.newPrice,
+        oldPrice: data.oldPrice,
+        waight: data.waight,
+        image: data.image,
+        imageTwo: data.imageTwo,
+        date: data.date,
+        status: data.status,
+        rating: data.rating,
+        location: data.location,
+        brand: data.brand,
+        sku: parseInt(data.sku) || Math.floor(Math.random() * 10000),
+        category: data.category,
+        quantity: data.quantity || 1
+      };
+      dispatch(addItem(reduxItem));
+    }
   };
 
-  // const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
+  // Show loading state
+  if (wishlistLoading) {
+    return (
+      <div className="container text-center py-5">
+        <Spinner />
+        <p>Loading wishlist...</p>
+      </div>
+    );
+  }
 
-  // if (error) return <div>Failed to load products</div>;
-  // if (!data)
-  //   return (
-  //     <div>
-  //       <Spinner />
-  //     </div>
-  //   );
-
-  // const getData = () => {
-  //   if (hasPaginate) return data.data;
-  //   else return data;
-  // };
-
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="container text-center py-5">
+        <h3>Please Login</h3>
+        <p>You need to be logged in to view your wishlist.</p>
+        <a href="/login" className="btn btn-primary">Login</a>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -82,7 +152,7 @@ const Wishlist = ({
             </h2>
             <p>Your product wish is our first priority.</p>
           </div>
-          {wishlistItems.length === 0 ? (
+          {!wishlistItems || wishlistItems.length === 0 ? (
             <h4 className="text-center">Your wishlist is empty.</h4>
           ) : (
             <Row>
@@ -111,7 +181,7 @@ const Wishlist = ({
                           </tr>
                         </thead>
                         <tbody className="wish-empt">
-                          {wishlistItems.map((data, index) => (
+                          {Array.isArray(wishlistItems) && wishlistItems.map((data, index) => (
                             <tr key={index} className="pro-gl-content">
                               <td scope="row">
                                 <span>{index + 1}</span>
@@ -130,23 +200,22 @@ const Wishlist = ({
                                 <span>{currentDate}</span>
                               </td>
                               <td>
-                                <span>${data.newPrice}</span>
+                                <span className="gi-price">
+                                  AED {data.newPrice}
+                                </span>
                               </td>
                               <td>
-                                <span
-                                  className={
-                                    data.status === "Available" ? "avl" : "out"
-                                  }
-                                >
+                                <span className="gi-status">
                                   {data.status}
                                 </span>
                               </td>
                               <td>
-                                <span className="tbl-btn">
+                                <span className="gi-action">
                                   <a
-                                    className="gi-btn-2 add-to-cart"
-                                    title="Add To Cart"
                                     onClick={() => handleCart(data)}
+                                    className="gi-btn-1 gi-add-cart btn"
+                                    href="#"
+                                    title="Add To Cart"
                                   >
                                     <i className="fi-rr-shopping-basket"></i>
                                   </a>

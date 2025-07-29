@@ -29,12 +29,21 @@ const QuantitySelector = ({
   };
 
   return (
-    <>
+    <div className="qty-plus-minus">
       <div
-        style={{ margin: " 0 0 0 10px", cursor: "pointer" }}
+        className="qty-btn qty-decrease"
         onClick={() => handleQuantityChange("decrease")}
+        title="Decrease quantity"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleQuantityChange("decrease");
+          }
+        }}
       >
-        -
+        <span>−</span>
       </div>
       <input
         readOnly
@@ -42,14 +51,25 @@ const QuantitySelector = ({
         type="text"
         name="gi-qtybtn"
         value={quantity}
+        aria-label="Quantity"
+        tabIndex={-1}
       />
       <div
-        style={{ margin: " 0 10px 0 0", cursor: "pointer" }}
+        className="qty-btn qty-increase"
         onClick={() => handleQuantityChange("increase")}
+        title="Increase quantity"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleQuantityChange("increase");
+          }
+        }}
       >
-        +
+        <span>+</span>
       </div>
-    </>
+    </div>
   );
 };
 

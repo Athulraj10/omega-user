@@ -9,7 +9,7 @@ import QuantitySelector from "../../quantity-selector/QuantitySelector";
 import Spinner from "@/components/button/Spinner";
 import ZoomImage from "@/components/zoom-image/ZoomImage";
 import StarRating from "../../stars/StarRating";
-import { useSelector } from "react-redux";
+import { useCartWishlist } from "../../../hooks/useCartWishlist";
 
 const SingleProductContent = ({
   productData,
@@ -17,14 +17,37 @@ const SingleProductContent = ({
   hasPaginate = false,
   onError = () => { },
 }) => {
-  const authUser = useSelector((state: any) => state.registration.isAuthenticated);
-  console.log("authUser", authUser)
-
   const [quantity, setQuantity] = useState(1);
   const [isSliderInitialized, setIsSliderInitialized] = useState(false);
+  
   const initialRef: any = null;
   const slider1 = useRef<Slider | null>(initialRef);
   const slider2 = useRef<Slider | null>(initialRef);
+  const hasCheckedWishlist = useRef<Set<string>>(new Set());
+
+  // Custom hook for cart and wishlist functionality
+  const {
+    addToCart,
+    updateCartQuantity,
+    addToWishlist,
+    removeFromWishlist,
+    checkWishlistStatus,
+    isInWishlist,
+    isInCart,
+    getCartItemQuantity,
+    cartLoading,
+    wishlistLoading,
+    isAuthenticated,
+    cartData
+  } = useCartWishlist();
+
+  // If productData is provided, use it directly, otherwise fetch from API
+  const { data, error } = productData
+    ? { data: productData, error: null }
+    : useSWR("/api/productphoto", fetcher, {
+      onSuccess,
+      onError,
+    });
 
   const slider1Settings = {
     slidesToShow: 1,
@@ -48,6 +71,22 @@ const SingleProductContent = ({
     setIsSliderInitialized(true);
   }, [isSliderInitialized]);
 
+  // Check wishlist status when product data changes (only once per product)
+  useEffect(() => {
+    if (isAuthenticated && data?._id && !hasCheckedWishlist.current.has(data._id)) {
+      console.log("Checking wishlist status for product:", data._id);
+      hasCheckedWishlist.current.add(data._id);
+      checkWishlistStatus(data._id);
+    }
+  }, [isAuthenticated, data?._id, checkWishlistStatus]);
+
+  // Clear cache when authentication changes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasCheckedWishlist.current.clear();
+    }
+  }, [isAuthenticated]);
+
   const handleSlider1Click = (index: any) => {
     if (slider2.current) {
       slider2.current.slickGoTo(index);
@@ -60,13 +99,50 @@ const SingleProductContent = ({
     }
   };
 
-  // If productData is provided, use it directly, otherwise fetch from API
-  const { data, error } = productData
-    ? { data: productData, error: null }
-    : useSWR("/api/productphoto", fetcher, {
-      onSuccess,
-      onError,
-    });
+  const handleAddToCart = () => {
+    if (!data?._id) {
+      return;
+    }
+
+    if (quantity < 1) {
+      return;
+    }
+
+    if (data.stock < quantity) {
+      return;
+    }
+
+    // If item is already in cart, don't allow adding again
+    if (isInCart(data._id)) {
+      return;
+    }
+
+    // Add to cart
+    addToCart(data._id, quantity);
+  };
+
+  const handleWishlistToggle = () => {
+    if (!data?._id) {
+      return;
+    }
+
+    console.log("Wishlist toggle clicked for product:", data._id);
+    console.log("Current wishlist status:", isInWishlist(data._id));
+
+    if (isInWishlist(data._id)) {
+      console.log("Removing from wishlist");
+      removeFromWishlist(data._id);
+    } else {
+      console.log("Adding to wishlist");
+      addToWishlist(data._id);
+    }
+  };
+
+  // Debug wishlist status
+  console.log("Product ID:", data?._id);
+  console.log("Is in wishlist:", data?._id ? isInWishlist(data._id) : false);
+  console.log("Wishlist loading:", wishlistLoading);
+  console.log("Wishlist button class:", `gi-btn-group wishlist ${isInWishlist(data._id) ? 'active' : ''} ${wishlistLoading ? 'disabled' : ''}`);
 
   if (error) return <div>Failed to load products</div>;
   if (!data)
@@ -80,7 +156,7 @@ const SingleProductContent = ({
     if (hasPaginate) return data;
     else return [data];
   };
-  console.log("getData", getData())
+
   return (
     <>
       <div className="single-pro-inner">
@@ -198,45 +274,73 @@ const SingleProductContent = ({
                 </div>
               )}
 
-              {authUser && (
-              <div className="gi-single-qty">
-                <div className="qty-plus-minus">
-                  <QuantitySelector
-                    setQuantity={setQuantity}
-                    quantity={quantity}
-                    id={data._id || data.id}
-                  />
-                </div>
+              {isAuthenticated && (
+                <div className="gi-single-qty">
+                  <div className="qty-plus-minus">
+                    <QuantitySelector
+                      setQuantity={setQuantity}
+                      quantity={quantity}
+                      id={data._id || data.id}
+                    />
+                  </div>
 
-                <div className="gi-single-cart">
-                  <button className="btn btn-primary gi-btn-1">
-                    Add To Cart
-                  </button>
-                </div>
+                  <div className="gi-single-cart">
+                    <button 
+                      className={`btn btn-primary gi-btn-1 ${cartLoading ? 'disabled' : ''} ${isInCart(data._id) ? 'added' : ''}`}
+                      onClick={handleAddToCart}
+                      disabled={cartLoading || data?.stock < 1 || isInCart(data._id)}
+                    >
+                      {cartLoading ? (
+                        <>
+                          <Spinner />
+                          Adding...
+                        </>
+                      ) : isInCart(data._id) ? (
+                        <>
+                          <i className="fi-rr-check"></i>
+                          Already in Cart
+                        </>
+                      ) : (
+                        data?.stock > 0 ? "Add To Cart" : "Out of Stock"
+                      )}
+                    </button>
+                  </div>
 
-                <div className="gi-single-wishlist">
-                  <a className="gi-btn-group wishlist" title="Wishlist">
-                    <i className="fi-rr-heart"></i>
-                  </a>
-                </div>
+                  <div className="gi-single-wishlist">
+                    <button 
+                      className={`gi-btn-group wishlist ${isInWishlist(data._id) ? 'active' : ''} ${wishlistLoading ? 'disabled' : ''}`}
+                      title={isInWishlist(data._id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                      onClick={handleWishlistToggle}
+                      disabled={wishlistLoading}
+                      aria-label={isInWishlist(data._id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                      data-product-id={data._id}
+                    >
+                      <i className={`fi-rr-heart ${isInWishlist(data._id) ? 'filled' : ''}`}></i>
+                    </button>
+                  </div>
 
-                <div className="gi-single-quickview">
-                  <a
-                    href="#"
-                    className="gi-btn-group quickview"
-                    data-link-action="quickview"
-                    title="Quick view"
-                    data-bs-toggle="modal"
-                    data-bs-target="#gi_quickview_modal"
-                  >
-                    <i className="fi-rr-eye"></i>
-                  </a>
+                  <div className="gi-single-quickview">
+                    <a
+                      href="#"
+                      className="gi-btn-group quickview"
+                      data-link-action="quickview"
+                      title="Quick view"
+                      data-bs-toggle="modal"
+                      data-bs-target="#gi_quickview_modal"
+                    >
+                      <i className="fi-rr-eye"></i>
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {!isAuthenticated && (
+                <div className="gi-single-login-prompt">
+                  <p>Please <a href="/login">login</a> to add items to cart or wishlist</p>
+                </div>
               )}
             </div>
           </Col>
-
         </Row>
       </div>
     </>

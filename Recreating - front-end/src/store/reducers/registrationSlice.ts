@@ -32,11 +32,14 @@ const registrationSlice = createSlice({
       state.token = null;
     },
     setUserData: (state, action) => {
-      state.address = action.payload.address;
-      state.wallet = action.payload.wallet;
-      state.user = action.payload.user;
-      state.isAuthenticated = action.payload.user ? true : false;
-      state.token = action.payload.token ?? state.token;
+      // Handle cases where payload might be undefined or have different structure
+      if (action.payload) {
+        state.address = action.payload.address || null;
+        state.wallet = action.payload.wallet || null;
+        state.user = action.payload.user || null;
+        state.isAuthenticated = action.payload.user ? true : false;
+        state.token = action.payload.token ?? state.token;
+      }
     },
   },
 });

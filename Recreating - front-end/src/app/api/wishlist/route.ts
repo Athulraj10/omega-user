@@ -1,23 +1,27 @@
-import { NextResponse } from "next/server";
 import backend from "@/lib/backend";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
-    // console.log("Auth header:", authHeader);
 
-    const response = await backend.get("/api/v1/wishlist", {
+    console.log("Getting wishlist");
+
+    const { data, status } = await backend.get("/api/v1/wishlist", {
       headers: {
         Authorization: authHeader || "",
       },
     });
 
-    return NextResponse.json(response.data, { status: response.status });
+    console.log("Backend response status:", status);
+    console.log("Wishlist data from backend:", data);
+
+    return NextResponse.json(data, { status });
   } catch (error: any) {
-    // console.error("API error:", error);
+    console.error("Error getting wishlist:", error?.response?.data || error.message);
 
     return NextResponse.json(
-      { message: error.response?.data?.message || "Internal server error" },
+      { message: error.response?.data?.message || "Failed to get wishlist" },
       { status: error.response?.status || 500 }
     );
   }

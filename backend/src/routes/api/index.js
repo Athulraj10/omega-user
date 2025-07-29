@@ -7,6 +7,7 @@ const userWishlist = require('./wishlist');
 const userOrders = require('./orders');
 const banners = require('./banners');
 const deals = require('./deals');
+const categories = require('./categories');
 
 router.use('/v1', authentication)
 router.use('/v1/products', product)
@@ -15,6 +16,6 @@ router.use('/v1/wishlist', userWishlist)
 router.use('/v1/orders', userOrders)
 router.use('/v1/banners', banners)
 router.use('/v1/deals', deals)
-
+router.use('/v1/categories', categories)
 
 module.exports = router

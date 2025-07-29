@@ -3,13 +3,11 @@ import { Col, Row } from "react-bootstrap";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import CategoryItem from "../product-item/CategoryItem";
-import useSWR from "swr";
-import fetcher from "../fetcher-api/Fetcher";
 import Spinner from "../button/Spinner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useCategories } from "@/hooks/useCategories";
+import React from "react";
 
 const Category = ({
   onSuccess = () => {},
@@ -18,41 +16,49 @@ const Category = ({
   className = "padding-tb-40",
 }) => {
   const { direction } = useSelector((state: RootState) => state.theme);
+  const { categories, loading, error } = useCategories();
 
-  const [data,setData] = useState<any[]>([]);
-  // const { data, error } = useSWR("/api/grocerycategory", fetcher, {
-  //   onSuccess,
-  //   onError,
-  // });
+  // Handle success and error callbacks
+  React.useEffect(() => {
+    if (categories.length > 0) {
+      onSuccess();
+    }
+  }, [categories, onSuccess]);
 
+  React.useEffect(() => {
+    if (error) {
+      onError();
+    }
+  }, [error, onError]);
 
-  // if (error) return <div>Failed to load products</div>;
-  // if (!data)
-  //   return (
-  //     <div>
-  //       <Spinner />
-  //     </div>
-  //   );
+  if (loading) {
+    return (
+      <section className={`gi-category body-bg ${className}`}>
+        <div className="container">
+          <div className="text-center py-5">
+            <Spinner />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-    
+  if (error) {
+    return (
+      <section className={`gi-category body-bg ${className}`}>
+        <div className="container">
+          <div className="text-center py-5">
+            <p className="text-danger">Failed to load categories</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const getData = () => {
-    if (hasPaginate) return data;
-    else return data;
+    if (hasPaginate) return categories;
+    else return categories;
   };
-
-  useEffect(() => {
-    const fetchBannerData = async () => {
-      try {
-        const response = await axios.get("/api/grocerycategory");
-        setData(response.data || []);
-      } catch (error) {
-        console.error("Failed to load banner data:", error);
-      }
-    };
-
-    fetchBannerData();
-  }, []);
 
   return (
     <section className={`gi-category body-bg ${className}`}>
@@ -95,10 +101,10 @@ const Category = ({
             >
               {getData().map((item: any, index: number) => (
                 <SwiperSlide
-                  key={index}
+                  key={item.id || index}
                   className={`gi-cat-box gi-cat-box-${item.num}`}
                 >
-                  <CategoryItem data={item} />
+                  <CategoryItem item={item} />
                 </SwiperSlide>
               ))}
             </Swiper>

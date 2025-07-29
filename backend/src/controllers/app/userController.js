@@ -377,9 +377,9 @@ module.exports = {
       ]);
 
       const response = {
-        user: sanitizeUser(userData.toObject()),
-        address: sanitizeAddress(address.toObject()),
-        wallet: sanitizeWallet(wallet.toObject()),
+        user: sanitizeUser(userData?.toObject()),
+        address: sanitizeAddress(address?.toObject()),
+        wallet: sanitizeWallet(wallet?.toObject()),
       };
       console.log(response)
 
