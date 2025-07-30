@@ -26,21 +26,29 @@ const TrendingItem = ({ data }) => {
   const dispatch = useDispatch();
 
   const handleCart = (data: Item) => {
-    const isItemInCart = cartItems.some((item: Item) => item.id === data.id);
+    const itemId = data.id;
+    if (itemId === undefined || itemId === null) {
+      console.error("Cannot add to cart: item ID is undefined");
+      return;
+    }
+    
+    const isItemInCart = cartItems.some((item: Item) => (item.id || item._id) === itemId);
 
     if (!isItemInCart) {
       dispatch(addItem({ ...data, quantity: 1 }));
       showSuccessToast("Add product in Cart Successfully!");
     } else {
-      const updatedCartItems = cartItems.map((item: Item) =>
-        item.id === data.id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-              price: item.newPrice + data.newPrice,
-            } // Increment quantity and update price
-          : item
-      );
+      const updatedCartItems = cartItems.map((item: Item) => {
+        const cartItemId = item.id || item._id;
+        if (cartItemId === itemId) {
+          return {
+            ...item,
+            quantity: item.quantity + 1,
+            price: item.newPrice + data.newPrice,
+          }; // Increment quantity and update price
+        }
+        return item;
+      });
       dispatch(updateItemQuantity(updatedCartItems));
       showSuccessToast("Add product in Cart Successfully!");
     }

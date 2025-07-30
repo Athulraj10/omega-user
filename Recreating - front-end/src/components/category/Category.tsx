@@ -6,7 +6,6 @@ import CategoryItem from "../product-item/CategoryItem";
 import Spinner from "../button/Spinner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useCategories } from "@/hooks/useCategories";
 import React from "react";
 
 const Category = ({
@@ -16,20 +15,16 @@ const Category = ({
   className = "padding-tb-40",
 }) => {
   const { direction } = useSelector((state: RootState) => state.theme);
-  const { categories, loading, error } = useCategories();
-
+ 
+  const { categories,loading } = useSelector((state: RootState) => state.categories);
+  console.log("categories from Redux:", categories);
   // Handle success and error callbacks
   React.useEffect(() => {
-    if (categories.length > 0) {
+    if (categories && Array.isArray(categories) && categories.length > 0) {
       onSuccess();
     }
   }, [categories, onSuccess]);
 
-  React.useEffect(() => {
-    if (error) {
-      onError();
-    }
-  }, [error, onError]);
 
   if (loading) {
     return (
@@ -43,22 +38,30 @@ const Category = ({
     );
   }
 
-  if (error) {
+  
+
+  const getData = () => {
+    // Ensure we always return an array
+    if (!categories || !Array.isArray(categories)) {
+      return [];
+    }
+    return categories;
+  };
+
+  const data = getData();
+
+  // Don't render if no data
+  if (!data || data.length === 0) {
     return (
       <section className={`gi-category body-bg ${className}`}>
         <div className="container">
           <div className="text-center py-5">
-            <p className="text-danger">Failed to load categories</p>
+            <p>No categories available</p>
           </div>
         </div>
       </section>
     );
   }
-
-  const getData = () => {
-    if (hasPaginate) return categories;
-    else return categories;
-  };
 
   return (
     <section className={`gi-category body-bg ${className}`}>
@@ -99,7 +102,7 @@ const Category = ({
               }}
               className={`gi-category-block owl-carousel  ${direction == "RTL" ? "rtl" : "ltr"}`}
             >
-              {getData().map((item: any, index: number) => (
+              {data.map((item: any, index: number) => (
                 <SwiperSlide
                   key={item.id || index}
                   className={`gi-cat-box gi-cat-box-${item.num}`}

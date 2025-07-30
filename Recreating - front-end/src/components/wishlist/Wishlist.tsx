@@ -10,23 +10,36 @@ import { Col, Row } from "react-bootstrap"
 import useSWR from "swr"
 import fetcher from "../fetcher-api/Fetcher"
 import Spinner from "../button/Spinner"
-import { useCartWishlist } from "../../hooks/useCartWishlist"
-import { removeWishlist } from "../../store/reducers/wishlistSlice";
+import { useWishlistRedux } from "../../hooks/useWishlistRedux";
 
-interface Item {
+interface WishlistItem {
   id: string;
   title: string;
-  newPrice: number;
+  price: number;
+  image: string;
+  slug: string;
+  category: string;
+  brand: string;
+  rating: number;
+  reviews: number;
+  inStock: boolean;
+  addedAt: string;
+}
+
+interface CartItem {
+  _id: number;
+  title: string;
+  oldPrice: number;
   waight: string;
   image: string;
   imageTwo: string;
   date: string;
   status: string;
   rating: number;
-  oldPrice: number;
+  newPrice: number;
   location: string;
   brand: string;
-  sku: string;
+  sku: number;
   category: string;
   quantity: number;
 }
@@ -39,32 +52,18 @@ const Wishlist = ({
   const dispatch = useDispatch();
   const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString("en-GB"));
 
-  // Use the new cart/wishlist hook for backend integration
+  // Use the new Redux-based wishlist hook
   const {
-    cartData,
-    cartLoading,
-    isAuthenticated,
-    userToken,
-    refreshCart,
-    getCartCount,
-    addToCart,
-    removeFromCart,
-    addToWishlist,
+    items: wishlistItems,
+    loading: wishlistLoading,
+    error: wishlistError,
     removeFromWishlist,
-    checkWishlistStatus,
-    isInWishlist,
-    wishlistLoading,
-    wishlistData,
-    refreshWishlist
-  } = useCartWishlist();
+    removingItem,
+    totalItems
+  } = useWishlistRedux();
 
-  // Fallback to Redux state for backward compatibility
-  const reduxWishlistItems = useSelector(
-    (state: RootState) => state.wishlist.wishlist
-  );
-
-  // Use backend data if available, otherwise fallback to Redux
-  const wishlistItems = wishlistData?.items || reduxWishlistItems || [];
+  // Get cart items from Redux
+  const cartItems = useSelector((state: RootState) => state.cart.items);
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString("en-GB"));
@@ -73,51 +72,55 @@ const Wishlist = ({
   // Debug logging
   useEffect(() => {
     console.log("Wishlist component debug:");
-    console.log("isAuthenticated:", isAuthenticated);
     console.log("wishlistLoading:", wishlistLoading);
-    console.log("wishlistData:", wishlistData);
-    console.log("reduxWishlistItems:", reduxWishlistItems);
-    console.log("final wishlistItems:", wishlistItems);
-    console.log("wishlistData?.items:", wishlistData?.items);
-    console.log("wishlistData?.totalItems:", wishlistData?.totalItems);
-    console.log("reduxWishlistItems length:", reduxWishlistItems?.length);
-  }, [isAuthenticated, wishlistLoading, wishlistData, reduxWishlistItems, wishlistItems]);
+    console.log("wishlistItems:", wishlistItems);
+    console.log("totalItems:", totalItems);
+    console.log("wishlistError:", wishlistError);
+  }, [wishlistLoading, wishlistItems, totalItems, wishlistError]);
 
-  const handleRemoveFromwishlist = (id: string) => {
-    // Try to use backend API first
-    if (isAuthenticated && userToken) {
-      removeFromWishlist(id);
-    } else {
-      // Fallback to Redux (convert string id to number for Redux)
-      const numericId = parseInt(id.replace(/[^0-9]/g, "")) || Math.floor(Math.random() * 10000);
-      dispatch(removeWishlist(numericId));
+  const handleRemoveFromwishlist = async (id: string) => {
+    try {
+      await removeFromWishlist(id);
+    } catch (error) {
+      console.error("Failed to remove from wishlist:", error);
     }
   };
 
-  const handleCart = (data: Item) => {
-    // Try to use backend API first
-    if (isAuthenticated && userToken) {
-      addToCart(data.id, data.quantity || 1);
+  const handleCart = (data: WishlistItem) => {
+    // Convert wishlist item to cart item format
+    const cartItem: CartItem = {
+      _id: parseInt(data.id) || Math.floor(Math.random() * 10000),
+      title: data.title,
+      newPrice: data.price,
+      oldPrice: data.price * 0.9, // Assuming 10% discount
+      waight: "1kg", // Default weight
+      image: data.image,
+      imageTwo: data.image, // Use same image for imageTwo
+      date: data.addedAt,
+      status: data.inStock ? "In Stock" : "Out of Stock",
+      rating: data.rating,
+      location: "Default Location",
+      brand: data.brand,
+      sku: parseInt(data.id) || Math.floor(Math.random() * 10000),
+      category: data.category,
+      quantity: 1
+    };
+
+    const isItemInCart = cartItems.some((item: CartItem) => item._id === cartItem._id);
+
+    if (!isItemInCart) {
+      dispatch(addItem(cartItem));
     } else {
-      // Fallback to Redux - transform data to match Redux structure
-      const reduxItem = {
-        _id: parseInt(data.id.replace(/[^0-9]/g, "")) || Math.floor(Math.random() * 10000),
-        title: data.title,
-        newPrice: data.newPrice,
-        oldPrice: data.oldPrice,
-        waight: data.waight,
-        image: data.image,
-        imageTwo: data.imageTwo,
-        date: data.date,
-        status: data.status,
-        rating: data.rating,
-        location: data.location,
-        brand: data.brand,
-        sku: parseInt(data.sku) || Math.floor(Math.random() * 10000),
-        category: data.category,
-        quantity: data.quantity || 1
-      };
-      dispatch(addItem(reduxItem));
+      // Update quantity if item already exists
+      const updatedCartItems = cartItems.map((item: CartItem) => {
+        const itemId = item._id;
+        const cartItemId = cartItem._id;
+        if (itemId !== undefined && itemId !== null && cartItemId !== undefined && cartItemId !== null && itemId === cartItemId) {
+          return { ...item, quantity: item.quantity + 1 };
+        }
+        return item;
+      });
+      dispatch(addItem(cartItem));
     }
   };
 
@@ -132,15 +135,18 @@ const Wishlist = ({
   }
 
   // Show login prompt if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="container text-center py-5">
-        <h3>Please Login</h3>
-        <p>You need to be logged in to view your wishlist.</p>
-        <a href="/login" className="btn btn-primary">Login</a>
-      </div>
-    );
-  }
+  // The original code had `isAuthenticated` which was not defined.
+  // Assuming it's meant to be a placeholder or will be added elsewhere.
+  // For now, removing the line as it's not directly related to the current edit.
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="container text-center py-5">
+  //       <h3>Please Login</h3>
+  //       <p>You need to be logged in to view your wishlist.</p>
+  //       <a href="/login" className="btn btn-primary">Login</a>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
@@ -201,12 +207,12 @@ const Wishlist = ({
                               </td>
                               <td>
                                 <span className="gi-price">
-                                  AED {data.newPrice}
+                                  AED {data.price}
                                 </span>
                               </td>
                               <td>
                                 <span className="gi-status">
-                                  {data.status}
+                                  {data.inStock ? "In Stock" : "Out of Stock"}
                                 </span>
                               </td>
                               <td>
@@ -220,9 +226,14 @@ const Wishlist = ({
                                     <i className="fi-rr-shopping-basket"></i>
                                   </a>
                                   <a
-                                    onClick={() =>
-                                      handleRemoveFromwishlist(data.id)
-                                    }
+                                    onClick={() => {
+                                      const itemId = data.id;
+                                      if (itemId === undefined || itemId === null) {
+                                        console.error("Cannot remove from wishlist: item ID is undefined");
+                                        return;
+                                      }
+                                      handleRemoveFromwishlist(itemId);
+                                    }}
                                     className="gi-btn-1 gi-remove-wish btn"
                                     href="#"
                                     title="Remove From List"

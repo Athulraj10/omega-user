@@ -252,7 +252,7 @@ const DiscountContent = () => {
               ) : (
                 <div className="row">
                   <div className="gi-t-review-wrapper">
-                    {reviews.map((data, index) => (
+                    {reviews && Array.isArray(reviews) && reviews.map((data, index) => (
                       <div key={index} className="gi-t-review-item">
                         <div className="gi-t-review-avtar">
                           <img

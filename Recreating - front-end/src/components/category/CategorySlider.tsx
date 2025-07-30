@@ -6,7 +6,6 @@ import CategoryItemTwo from "../product-item/CategoryItemTwo";
 import Spinner from "../button/Spinner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useCategories } from "@/hooks/useCategories";
 import React from "react";
 
 const CategorySlider = ({
@@ -15,20 +14,15 @@ const CategorySlider = ({
   onError = () => {},
 }) => {
   const { direction } = useSelector((state: RootState) => state.theme);
-  const { categories, loading, error } = useCategories();
-
+  const { categories,loading } = useSelector((state: RootState) => state.categories);
+  
   // Handle success and error callbacks
   React.useEffect(() => {
-    if (categories.length > 0) {
+    if (categories && categories.length > 0) {
       onSuccess();
     }
   }, [categories, onSuccess]);
 
-  React.useEffect(() => {
-    if (error) {
-      onError();
-    }
-  }, [error, onError]);
 
   if (loading) {
     return (
@@ -40,20 +34,27 @@ const CategorySlider = ({
     );
   }
 
-  if (error) {
+
+  const getData = () => {
+    // Ensure we always return an array
+    if (!categories || !Array.isArray(categories)) {
+      return [];
+    }
+    return categories;
+  };
+
+  const data = getData();
+
+  // Don't render if no data
+  if (!data || data.length === 0) {
     return (
       <Col xl={12} className="border-content-color">
         <div className="text-center py-5">
-          <p className="text-danger">Failed to load categories</p>
+          <p>No categories available</p>
         </div>
       </Col>
     );
   }
-
-  const getData = () => {
-    if (hasPaginate) return categories;
-    else return categories;
-  };
 
   return (
     <>
@@ -98,13 +99,13 @@ const CategorySlider = ({
               spaceBetween: 25,
             },
             1440: {
-              slidesPerView: 5,
+              slidesPerView: 4,
               spaceBetween: 25,
             },
           }}
-          className={`gi-category-block-2 owl-carousel ${direction == "RTL" ? "rtl" : "ltr"}`}
+          className={`gi-category-block owl-carousel  ${direction == "RTL" ? "rtl" : "ltr"}`}
         >
-          {getData().map((item: any, index: number) => (
+          {data.map((item: any, index: number) => (
             <SwiperSlide
               key={item.id || index}
               className={`gi-cat-box gi-cat-box-${item.num}`}

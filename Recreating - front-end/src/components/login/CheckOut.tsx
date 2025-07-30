@@ -1025,7 +1025,7 @@ const CheckOut = ({
                                         <option value="" disabled>
                                           Country
                                         </option>
-                                        {filteredCountryData.map(
+                                        {filteredCountryData && Array.isArray(filteredCountryData) && filteredCountryData.map(
                                           (country: any, index: number) => (
                                             <option
                                               key={index}
@@ -1060,7 +1060,7 @@ const CheckOut = ({
                                         {loadingStates ? (
                                           <option disabled>Loading...</option>
                                         ) : (
-                                          filteredStateData.map(
+                                          filteredStateData && Array.isArray(filteredStateData) && filteredStateData.map(
                                             (state: any, index) => (
                                               <option
                                                 key={index}
@@ -1096,7 +1096,7 @@ const CheckOut = ({
                                         {loadingCities ? (
                                           <option disabled>Loading...</option>
                                         ) : (
-                                          filteredCityData.map(
+                                          filteredCityData && Array.isArray(filteredCityData) && filteredCityData.map(
                                             (city: any, index) => (
                                               <option
                                                 key={index}
@@ -1163,7 +1163,7 @@ const CheckOut = ({
                                       </div>
                                     </div>
                                     <ul>
-                                      {addressVisible.map((address, index) => (
+                                      {addressVisible && Array.isArray(addressVisible) && addressVisible.map((address, index) => (
                                         <li key={index}>
                                           <div
                                             style={{
@@ -1408,7 +1408,7 @@ const CheckOut = ({
                         },
                       }}
                     >
-                      {getData().map((item: any, index: number) => (
+                      {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
                         <SwiperSlide key={index}>
                           <ItemCard data={item} />
                         </SwiperSlide>

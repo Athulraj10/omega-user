@@ -40,7 +40,7 @@ function ProductAll({
 
   return (
     <>
-      {getData().map((item: any, index: number) => (
+      {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
         <Col
           key={index}
           md={4}

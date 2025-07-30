@@ -1,79 +1,20 @@
 import React from 'react';
-import { useCartWishlist } from '../../hooks/useCartWishlist';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { useWishlistRedux } from '../../hooks/useWishlistRedux';
 
 const CartDebug = () => {
+  // Get cart data from Redux
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
+
+  // Get wishlist data from Redux
   const {
-    cartData,
-    cartLoading,
-    isAuthenticated,
-    userToken,
-    refreshCart,
-    getCartCount,
-    addToCart,
-    removeFromCart
-  } = useCartWishlist();
-
-  const handleTestAddToCart = async () => {
-    // Test with a sample product ID - replace with actual product ID from your database
-    const testProductId = "507f1f77bcf86cd799439011"; // Sample MongoDB ObjectId
-    await addToCart(testProductId, 1);
-  };
-
-  const handleTestRemoveFromCart = async () => {
-    if (cartData && cartData.items && cartData.items.length > 0) {
-      await removeFromCart(cartData.items[0].id);
-    }
-  };
-
-  const handleGetCartCount = async () => {
-    const count = await getCartCount();
-    console.log("Cart count:", count);
-  };
-
-  const handleTestAPI = async () => {
-    try {
-      console.log("Testing API routes...");
-      
-      // Test basic API route
-      const testResponse = await fetch('/api/test');
-      const testResult = await testResponse.json();
-      console.log("Test API result:", testResult);
-      
-      // Test cart API route
-      if (isAuthenticated && userToken) {
-        const cartResponse = await fetch('/api/cart', {
-          headers: {
-            'Authorization': `Bearer ${userToken}`
-          }
-        });
-        const cartResult = await cartResponse.json();
-        console.log("Cart API result:", cartResult);
-      }
-      
-    } catch (error) {
-      console.error("API test error:", error);
-    }
-  };
-
-  const handleHealthCheck = async () => {
-    try {
-      console.log("Running health check...");
-      
-      const healthResponse = await fetch('/api/health');
-      const healthResult = await healthResponse.json();
-      console.log("Health check result:", healthResult);
-      
-      if (healthResult.success) {
-        alert("✅ Backend is accessible!");
-      } else {
-        alert("❌ Backend is not accessible: " + healthResult.error);
-      }
-      
-    } catch (error) {
-      console.error("Health check error:", error);
-      alert("❌ Health check failed: " + error);
-    }
-  };
+    items: wishlistItems,
+    loading: wishlistLoading,
+    error: wishlistError,
+    totalItems: wishlistCount
+  } = useWishlistRedux();
 
   return (
     <div style={{ 
@@ -88,149 +29,51 @@ const CartDebug = () => {
       maxWidth: '300px',
       fontSize: '12px'
     }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Cart Debug</h4>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Cart & Wishlist Debug</h4>
       
       <div style={{ marginBottom: '10px' }}>
         <strong>Auth Status:</strong> {isAuthenticated ? '✅ Logged In' : '❌ Not Logged In'}
       </div>
       
       <div style={{ marginBottom: '10px' }}>
-        <strong>Token:</strong> {userToken ? '✅ Present' : '❌ Missing'}
+        <strong>Cart Items:</strong> {cartItems.length}
       </div>
       
       <div style={{ marginBottom: '10px' }}>
-        <strong>Loading:</strong> {cartLoading ? '🔄 Loading...' : '✅ Ready'}
+        <strong>Wishlist Items:</strong> {wishlistCount}
       </div>
       
       <div style={{ marginBottom: '10px' }}>
-        <strong>Cart Items:</strong> {cartData?.items?.length || 0}
+        <strong>Wishlist Loading:</strong> {wishlistLoading ? '🔄 Loading' : '✅ Ready'}
       </div>
       
-      <div style={{ marginBottom: '10px' }}>
-        <strong>Subtotal:</strong> AED {cartData?.subtotal?.toFixed(2) || '0.00'}
-      </div>
-      
-      <div style={{ marginBottom: '15px' }}>
-        <strong>Total Items:</strong> {cartData?.totalItems || 0}
-      </div>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-        <button 
-          onClick={handleHealthCheck}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#17a2b8', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Health Check
-        </button>
-        
-        <button 
-          onClick={handleTestAPI}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#6f42c1', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Test API Routes
-        </button>
-        
-        <button 
-          onClick={handleTestAddToCart}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#007bff', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Test Add to Cart
-        </button>
-        
-        <button 
-          onClick={handleTestRemoveFromCart}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#dc3545', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Test Remove from Cart
-        </button>
-        
-        <button 
-          onClick={handleGetCartCount}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#28a745', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Get Cart Count
-        </button>
-        
-        <button 
-          onClick={refreshCart}
-          style={{ 
-            padding: '5px 10px', 
-            background: '#ffc107', 
-            color: 'black', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '11px'
-          }}
-        >
-          Refresh Cart
-        </button>
-      </div>
-      
-      <div style={{ marginTop: '10px', fontSize: '10px', color: '#666' }}>
-        <strong>API Endpoints:</strong>
-        <div style={{ fontSize: '9px', marginTop: '5px' }}>
-          <div>GET /api/health</div>
-          <div>GET /api/test</div>
-          <div>GET /api/cart</div>
-          <div>POST /api/cart/add</div>
-          <div>PUT /api/cart/update/[id]</div>
-          <div>DELETE /api/cart/remove/[id]</div>
-          <div>GET /api/cart/count</div>
+      {wishlistError && (
+        <div style={{ marginBottom: '10px', color: 'red' }}>
+          <strong>Wishlist Error:</strong> {wishlistError}
         </div>
-      </div>
+      )}
       
-      <div style={{ marginTop: '10px', fontSize: '10px', color: '#666' }}>
-        <strong>Cart Data:</strong>
-        <pre style={{ 
-          background: '#f1f3f4', 
-          padding: '5px', 
-          borderRadius: '4px', 
-          overflow: 'auto',
-          maxHeight: '100px'
-        }}>
-          {JSON.stringify(cartData, null, 2)}
-        </pre>
-      </div>
+      <details style={{ marginBottom: '10px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Cart Items</summary>
+        <div style={{ fontSize: '10px', marginTop: '5px' }}>
+          {cartItems.map((item: any, index: number) => (
+            <div key={index} style={{ marginBottom: '2px' }}>
+              {item.title} - Qty: {item.quantity}
+            </div>
+          ))}
+        </div>
+      </details>
+      
+      <details style={{ marginBottom: '10px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Wishlist Items</summary>
+        <div style={{ fontSize: '10px', marginTop: '5px' }}>
+          {wishlistItems.map((item: any, index: number) => (
+            <div key={index} style={{ marginBottom: '2px' }}>
+              {item.title}
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 };

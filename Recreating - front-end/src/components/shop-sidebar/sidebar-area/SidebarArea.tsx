@@ -177,7 +177,7 @@ const SidebarArea = ({
                 >
                   <ul>
                     {/* Check if data is an array before mapping */}
-                    {categoryData.map((category: any, index: number) => (
+                    {categoryData && Array.isArray(categoryData) && categoryData.map((category: any, index: number) => (
                       <li key={index}>
                         {/* Assuming ShopCategoryBlock accepts a 'data' prop */}
                         <div className="gi-sidebar-block-item">

@@ -506,7 +506,7 @@ const RegisterPage = ({ onSuccess = () => { }, onError = () => { } }) => {
                                 <option value="" disabled>
                                   Country
                                 </option>
-                                {filteredCountryData.map(
+                                {filteredCountryData && Array.isArray(filteredCountryData) && filteredCountryData.map(
                                   (country: any, index) => (
                                     <option key={index} value={country.iso2}>
                                       {country.countryName}
@@ -552,7 +552,7 @@ const RegisterPage = ({ onSuccess = () => { }, onError = () => { } }) => {
                                 {loadingStates ? (
                                   <option disabled>Loading...</option>
                                 ) : (
-                                  filteredStateData.map((state: any, index) => (
+                                  filteredStateData && Array.isArray(filteredStateData) && filteredStateData.map((state: any, index) => (
                                     <option
                                       key={index}
                                       value={state.state_code}
@@ -597,7 +597,7 @@ const RegisterPage = ({ onSuccess = () => { }, onError = () => { } }) => {
                                 {loadingCities ? (
                                   <option disabled>Loading...</option>
                                 ) : (
-                                  filteredCityData.map((city: any, index) => (
+                                  filteredCityData && Array.isArray(filteredCityData) && filteredCityData.map((city: any, index) => (
                                     <option key={index} value={city.iso2}>
                                       {city.CityName}
                                     </option>

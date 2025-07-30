@@ -74,15 +74,18 @@ const QuickViewModal = ({ show, handleClose, data }: QuickViewModalProps) => {
     if (!isItemInCart) {
       dispatch(addItem(newItem));
     } else {
-      const updatedCartItems = cartItems.map((item) =>
-        item.id === data._id
-          ? {
-              ...item,
-              quantity: item.quantity + quantity,
-              price: item.newPrice + data.discountPrice,
-            }
-          : item
-      );
+      const updatedCartItems = cartItems.map((item) => {
+        const itemId = item.id || item._id;
+        const dataId = data._id;
+        if (itemId !== undefined && itemId !== null && dataId !== undefined && dataId !== null && itemId === dataId) {
+          return {
+            ...item,
+            quantity: item.quantity + quantity,
+            price: item.newPrice + data.discountPrice,
+          };
+        }
+        return item;
+      });
       dispatch(updateItemQuantity(updatedCartItems));
     }
 

@@ -9,7 +9,10 @@ import QuantitySelector from "../../quantity-selector/QuantitySelector";
 import Spinner from "@/components/button/Spinner";
 import ZoomImage from "@/components/zoom-image/ZoomImage";
 import StarRating from "../../stars/StarRating";
-import { useCartWishlist } from "../../../hooks/useCartWishlist";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { addItem, updateQuantity } from "../../../store/reducers/cartSlice";
+import { useWishlistRedux } from "../../../hooks/useWishlistRedux";
 
 const SingleProductContent = ({
   productData,
@@ -17,6 +20,7 @@ const SingleProductContent = ({
   hasPaginate = false,
   onError = () => { },
 }) => {
+  const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
   const [isSliderInitialized, setIsSliderInitialized] = useState(false);
   
@@ -25,21 +29,18 @@ const SingleProductContent = ({
   const slider2 = useRef<Slider | null>(initialRef);
   const hasCheckedWishlist = useRef<Set<string>>(new Set());
 
-  // Custom hook for cart and wishlist functionality
+  // Use the new Redux-based wishlist hook
   const {
-    addToCart,
-    updateCartQuantity,
     addToWishlist,
     removeFromWishlist,
-    checkWishlistStatus,
-    isInWishlist,
-    isInCart,
-    getCartItemQuantity,
-    cartLoading,
-    wishlistLoading,
-    isAuthenticated,
-    cartData
-  } = useCartWishlist();
+    isItemInWishlist,
+    addingItem,
+    removingItem
+  } = useWishlistRedux();
+
+  // Get cart data from Redux
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
 
   // If productData is provided, use it directly, otherwise fetch from API
   const { data, error } = productData
@@ -71,15 +72,6 @@ const SingleProductContent = ({
     setIsSliderInitialized(true);
   }, [isSliderInitialized]);
 
-  // Check wishlist status when product data changes (only once per product)
-  useEffect(() => {
-    if (isAuthenticated && data?._id && !hasCheckedWishlist.current.has(data._id)) {
-      console.log("Checking wishlist status for product:", data._id);
-      hasCheckedWishlist.current.add(data._id);
-      checkWishlistStatus(data._id);
-    }
-  }, [isAuthenticated, data?._id, checkWishlistStatus]);
-
   // Clear cache when authentication changes
   useEffect(() => {
     if (!isAuthenticated) {
@@ -100,49 +92,84 @@ const SingleProductContent = ({
   };
 
   const handleAddToCart = () => {
-    if (!data?._id) {
-      return;
-    }
+    if (!data) return;
 
-    if (quantity < 1) {
-      return;
-    }
+    const cartItem = {
+      _id: data._id || Math.floor(Math.random() * 10000),
+      title: data.title,
+      newPrice: data.newPrice,
+      oldPrice: data.oldPrice,
+      waight: data.waight,
+      image: data.image,
+      imageTwo: data.imageTwo,
+      date: data.date,
+      status: data.status,
+      rating: data.rating,
+      location: data.location,
+      brand: data.brand,
+      sku: data.sku,
+      category: data.category,
+      quantity: quantity
+    };
 
-    if (data.stock < quantity) {
-      return;
+    const existingItem = cartItems.find(item => item._id === cartItem._id);
+    
+    if (existingItem) {
+      // Update quantity if item already exists
+      dispatch(updateQuantity({ 
+        id: cartItem._id, 
+        quantity: existingItem.quantity + quantity 
+      }));
+    } else {
+      // Add new item
+      dispatch(addItem(cartItem));
     }
-
-    // If item is already in cart, don't allow adding again
-    if (isInCart(data._id)) {
-      return;
-    }
-
-    // Add to cart
-    addToCart(data._id, quantity);
   };
 
-  const handleWishlistToggle = () => {
-    if (!data?._id) {
-      return;
-    }
+  const handleWishlistToggle = async () => {
+    if (!data) return;
 
-    console.log("Wishlist toggle clicked for product:", data._id);
-    console.log("Current wishlist status:", isInWishlist(data._id));
-
-    if (isInWishlist(data._id)) {
-      console.log("Removing from wishlist");
-      removeFromWishlist(data._id);
-    } else {
-      console.log("Adding to wishlist");
-      addToWishlist(data._id);
+    try {
+      const productId = data._id;
+      if (productId === undefined || productId === null) {
+        console.error("Cannot toggle wishlist: product ID is undefined");
+        return;
+      }
+      
+      if (isItemInWishlist(productId.toString())) {
+        await removeFromWishlist(productId.toString());
+      } else {
+        await addToWishlist(productId.toString());
+      }
+    } catch (error) {
+      console.error("Wishlist operation failed:", error);
     }
+  };
+
+  const isInWishlist = (productId: string) => {
+    return isItemInWishlist(productId);
+  };
+
+  const isInCart = (productId: string) => {
+    return cartItems.some(item => {
+      const itemId = item._id;
+      return itemId !== undefined && itemId !== null && itemId.toString() === productId;
+    });
+  };
+
+  const getCartItemQuantity = (productId: string) => {
+    const item = cartItems.find(item => {
+      const itemId = item._id;
+      return itemId !== undefined && itemId !== null && itemId.toString() === productId;
+    });
+    return item ? item.quantity : 0;
   };
 
   // Debug wishlist status
   console.log("Product ID:", data?._id);
-  console.log("Is in wishlist:", data?._id ? isInWishlist(data._id) : false);
-  console.log("Wishlist loading:", wishlistLoading);
-  console.log("Wishlist button class:", `gi-btn-group wishlist ${isInWishlist(data._id) ? 'active' : ''} ${wishlistLoading ? 'disabled' : ''}`);
+  console.log("Is in wishlist:", data?._id ? isInWishlist(data._id.toString()) : false);
+  console.log("Wishlist loading:", addingItem || removingItem);
+  console.log("Wishlist button class:", `gi-btn-group wishlist ${data?._id ? isInWishlist(data._id.toString()) : false ? 'active' : ''} ${addingItem || removingItem ? 'disabled' : ''}`);
 
   if (error) return <div>Failed to load products</div>;
   if (!data)
@@ -248,7 +275,7 @@ const SingleProductContent = ({
               {data?.specifications && (
                 <div className="gi-single-list">
                   <ul>
-                    {Object.entries(data.specifications).map(([key, value]) => (
+                    {Object.entries(data.specifications || {}).map(([key, value]) => (
                       <li key={key}>
                         <strong>{key} :</strong> {String(value)}
                       </li>
@@ -257,7 +284,7 @@ const SingleProductContent = ({
                 </div>
               )}
 
-              {data?.weights && data.weights.length > 0 && (
+              {data?.weights && Array.isArray(data.weights) && data.weights.length > 0 && (
                 <div className="gi-pro-variation">
                   <div className="gi-pro-variation-inner gi-pro-variation-size">
                     <span>Weight</span>
@@ -286,14 +313,14 @@ const SingleProductContent = ({
 
                   <div className="gi-single-cart">
                     <button 
-                      className={`btn btn-primary gi-btn-1 ${cartLoading ? 'disabled' : ''} ${isInCart(data._id) ? 'added' : ''}`}
+                      className={`btn btn-primary gi-btn-1 ${addingItem || removingItem ? 'disabled' : ''} ${isInCart(data._id) ? 'added' : ''}`}
                       onClick={handleAddToCart}
-                      disabled={cartLoading || data?.stock < 1 || isInCart(data._id)}
+                      disabled={addingItem || removingItem || data?.stock < 1 || isInCart(data._id)}
                     >
-                      {cartLoading ? (
+                      {addingItem || removingItem ? (
                         <>
                           <Spinner />
-                          Adding...
+                          {addingItem ? "Adding..." : "Removing..."}
                         </>
                       ) : isInCart(data._id) ? (
                         <>
@@ -308,10 +335,10 @@ const SingleProductContent = ({
 
                   <div className="gi-single-wishlist">
                     <button 
-                      className={`gi-btn-group wishlist ${isInWishlist(data._id) ? 'active' : ''} ${wishlistLoading ? 'disabled' : ''}`}
+                      className={`gi-btn-group wishlist ${isInWishlist(data._id) ? 'active' : ''} ${addingItem || removingItem ? 'disabled' : ''}`}
                       title={isInWishlist(data._id) ? "Remove from Wishlist" : "Add to Wishlist"}
                       onClick={handleWishlistToggle}
-                      disabled={wishlistLoading}
+                      disabled={addingItem || removingItem}
                       aria-label={isInWishlist(data._id) ? "Remove from Wishlist" : "Add to Wishlist"}
                       data-product-id={data._id}
                     >

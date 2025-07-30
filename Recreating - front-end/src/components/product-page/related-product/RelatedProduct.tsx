@@ -93,7 +93,7 @@ const RelatedProduct = ({
                     }}
                     className="deal-slick-carousel gi-product-slider"
                   >
-                    {getData().map((item: any, index: number) => (
+                    {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
                       <SwiperSlide key={index}>
                         <ItemCard data={item} />
                       </SwiperSlide>

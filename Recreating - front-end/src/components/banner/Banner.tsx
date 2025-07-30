@@ -62,7 +62,7 @@ const [banners, setBanners] = useState<BannerItem[]>([]);
                     pagination={{ clickable: true }}
                     loop={true}
                   >
-                    {banners.map((banner, index) => (
+                    {banners && Array.isArray(banners) && banners.map((banner, index) => (
                       <SwiperSlide key={index}>
                         <div className="gi-bnr-detail">
                           <div className="gi-bnr-info">

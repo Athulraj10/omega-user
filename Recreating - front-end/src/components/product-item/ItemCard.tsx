@@ -10,10 +10,9 @@ import {
 import Link from "next/link";
 import { showSuccessToast } from "../toast-popup/Toastify";
 import { RootState } from "@/store";
-import { addWishlist, removeWishlist } from "@/store/reducers/wishlistSlice";
 import { addCompare, removeCompareItem } from "@/store/reducers/compareSlice";
-// const placeholder = process.env.NEXT_PUBLIC_URL + ;
-// D:\DOWNLOADS\omega\omega-user\Recreating - front-end\public\assets\img\product-images\1_1.jpg
+import { useWishlistRedux } from "@/hooks/useWishlistRedux";
+
 interface Item {
   id: number;
   title: string;
@@ -51,15 +50,20 @@ const ItemCard = ({ data }: any) => {
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const compareItems = useSelector((state: RootState) => state.compare.compare);
-  const wishlistItems = useSelector(
-    (state: RootState) => state.wishlist.wishlist
-  );
   const cartItems = useSelector((state: RootState) => state.cart.items);
-
+  
+  // Use the new Redux-based wishlist hook
+  const { 
+    items: wishlistItems, 
+    addToWishlist, 
+    removeFromWishlist,
+    isItemInWishlist,
+    addingItem,
+    removingItem 
+  } = useWishlistRedux();
 
   console.log({ wishlistItems })
   console.log({ cartItems })
-
 
   useEffect(() => {
     const itemsFromLocalStorage =
@@ -72,14 +76,20 @@ const ItemCard = ({ data }: any) => {
   }, [dispatch]);
 
   const handleCart = (data: Item) => {
-    const isItemInCart = cartItems.some((item: Item) => item.id === data.id);
+    const itemId = data.id || data._id;
+    if (itemId === undefined || itemId === null) {
+      console.error("Cannot add to cart: item ID is undefined");
+      return;
+    }
+    
+    const isItemInCart = cartItems.some((item: Item) => (item.id || item._id) === itemId);
 
     if (!isItemInCart) {
       dispatch(addItem({ ...data, quantity: 1 }));
       showSuccessToast("Add product in Cart Successfully!");
     } else {
       const updatedCartItems = cartItems.map((item: Item) =>
-        item.id === data.id
+        (item.id || item._id) === itemId
           ? {
             ...item,
             quantity: item.quantity + 1,
@@ -93,40 +103,61 @@ const ItemCard = ({ data }: any) => {
   };
 
   const isInWishlist = (data: Item) => {
-    if (!data) return false
-    if (wishlistItems.length > 0) {
-      return wishlistItems?.some((item: Item) => item.id === data.id);
-    }
-    return false
+    if (!data) return false;
+    // Check for both id and _id properties, with fallback to string conversion
+    const itemId = data.id || data._id;
+    if (itemId === undefined || itemId === null) return false;
+    return isItemInWishlist(itemId.toString());
   };
 
-  const handleWishlist = (data: Item) => {
-    if (!isInWishlist(data)) {
-      dispatch(addWishlist(data));
-      showSuccessToast("Add product in Wishlist Successfully!", {
-        icon: false,
-      });
-    } else {
-      dispatch(removeWishlist(data.id));
-      showSuccessToast("Remove product on Wishlist Successfully!", {
-        icon: false,
-      });
-      // showErrorToast("Item already have to wishlist");
+  const handleWishlist = async (data: Item) => {
+    try {
+      if (!isInWishlist(data)) {
+        const itemId = data.id || data._id;
+        if (itemId === undefined || itemId === null) {
+          console.error("Cannot add to wishlist: item ID is undefined");
+          return;
+        }
+        await addToWishlist(itemId.toString());
+        showSuccessToast("Add product in Wishlist Successfully!", {
+          icon: false,
+        });
+      } else {
+        const itemId = data.id || data._id;
+        if (itemId === undefined || itemId === null) {
+          console.error("Cannot remove from wishlist: item ID is undefined");
+          return;
+        }
+        await removeFromWishlist(itemId.toString());
+        showSuccessToast("Remove product on Wishlist Successfully!", {
+          icon: false,
+        });
+      }
+    } catch (error) {
+      console.error("Wishlist operation failed:", error);
     }
   };
 
   const isInCompare = (data: Item) => {
-    return compareItems.some((item: Item) => item.id === data.id);
+    const itemId = data.id || data._id;
+    if (itemId === undefined || itemId === null) return false;
+    return compareItems.some((item: Item) => (item.id || item._id) === itemId);
   };
 
   const handleCompareItem = (data: Item) => {
+    const itemId = data.id || data._id;
+    if (itemId === undefined || itemId === null) {
+      console.error("Cannot handle compare: item ID is undefined");
+      return;
+    }
+    
     if (!isInCompare(data)) {
       dispatch(addCompare(data));
       showSuccessToast(`Add product in Compare list Successfully!`, {
         icon: false,
       });
     } else {
-      dispatch(removeCompareItem(data.id));
+      dispatch(removeCompareItem(itemId));
       showSuccessToast("Remove product on Compare list Successfully!", {
         icon: false,
       });
@@ -170,6 +201,7 @@ const ItemCard = ({ data }: any) => {
             <div className="gi-pro-actions">
               <button
                 onClick={() => handleWishlist(data)}
+                disabled={addingItem || removingItem}
                 className={`gi-btn-group wishlist ${isInWishlist(data) ? "active" : ""}`}
                 title="Wishlist"
               >
@@ -205,7 +237,7 @@ const ItemCard = ({ data }: any) => {
 
             {(data.colors?.length || data.sizes?.length) && (
               <div className="gi-pro-option">
-                {data.colors?.length > 0 && (
+                {data.colors && Array.isArray(data.colors) && data.colors.length > 0 && (
                   <ul className="colors">
                     {data.colors.map((color, idx) => (
                       <li key={idx} className={`color-${color}`}>
@@ -214,7 +246,7 @@ const ItemCard = ({ data }: any) => {
                     ))}
                   </ul>
                 )}
-                {data.sizes?.length > 0 && (
+                {data.sizes && Array.isArray(data.sizes) && data.sizes.length > 0 && (
                   <ul className="sizes">
                     {data.sizes.map((size, idx) => (
                       <li key={idx}>

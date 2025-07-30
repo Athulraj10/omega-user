@@ -162,7 +162,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Dairy</h6>
                               <ul className="cat-list">
-                                {fruits.map((data, index) => (
+                                {fruits && Array.isArray(fruits) && fruits.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>
@@ -172,7 +172,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Bakery</h6>
                               <ul className="cat-list">
-                                {bakery.map((data, index) => (
+                                {bakery && Array.isArray(bakery) && bakery.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>
@@ -196,7 +196,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Fruits</h6>
                               <ul className="cat-list">
-                                {fruits.map((data, index) => (
+                                {fruits && Array.isArray(fruits) && fruits.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>
@@ -206,7 +206,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Vegetable</h6>
                               <ul className="cat-list">
-                                {fruits.map((data, index) => (
+                                {fruits && Array.isArray(fruits) && fruits.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>
@@ -231,7 +231,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Snacks</h6>
                               <ul className="cat-list">
-                                {snacks.map((data, index) => (
+                                {snacks && Array.isArray(snacks) && snacks.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>
@@ -241,7 +241,7 @@ function HeaderManu() {
                             <div className="col">
                               <h6 className="gi-col-title">Spice</h6>
                               <ul className="cat-list">
-                                {spice.map((data, index) => (
+                                {spice && Array.isArray(spice) && spice.map((data, index) => (
                                   <li key={index}>
                                     <Link href={data.href}>{data.name}</Link>
                                   </li>

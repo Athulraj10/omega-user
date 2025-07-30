@@ -128,7 +128,7 @@ function Footer({ onSuccess = () => {}, onError = () => {} }) {
                         }}
                       >
                         <ul className="align-itegi-center">
-                          {CategoryData.map((data, index) => (
+                          {CategoryData && Array.isArray(CategoryData) && CategoryData.map((data, index) => (
                             <li key={index} className="gi-footer-link">
                               <a
                                 style={{ textTransform: "capitalize" }}

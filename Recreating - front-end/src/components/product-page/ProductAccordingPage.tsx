@@ -136,7 +136,7 @@ const ProductPage = ({
             style={{ overflow: "hidden" }}
             className="gi-add-more-slider owl-carousel"
           >
-            {getData().map((item: any, index: number) => (
+            {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
               <SwiperSlide key={index} className="add-more-item">
                 <a href="" className="gi-btn-2">
                   +

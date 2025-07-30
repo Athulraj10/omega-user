@@ -17,22 +17,20 @@ const Deal = ({
   const [data, setData] = useState([])
   const [error, setError] = useState(null)
 
-
-
   const fetchData = async () => {
     try {
-      const response = await fetch(`/api/deal`, {
-        method: 'get',
+      const response = await fetch('/api/deal', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      const data = await response.json();
-      console.log('data from backend', data)
+      const result = await response.json();
+      console.log('data from backend', result)
 
-      if (data.meta.code === 200) {
-        setData(data.data)
+      if (result?.meta?.code === 200) {
+        setData(result.data)
         return
       }
     } catch (error: any) {
@@ -40,13 +38,10 @@ const Deal = ({
       console.error('FETCH PRODUCTS ERROR:', error);
     }
   }
+  
   useEffect(() => {
     fetchData()
   }, [])
-
-
-
-
 
   if (error) <Spinner />
   const getData = () => {
@@ -123,7 +118,7 @@ const Deal = ({
                         }}
                         className="slick-track"
                       >
-                        {data&& data?.length && getData()?.map((item: any, index: number) => (
+                        {data && data?.length && getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
                           <SwiperSlide key={index} className="slick-slide">
                             <ItemCard data={item} />
                           </SwiperSlide>

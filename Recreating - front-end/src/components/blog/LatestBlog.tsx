@@ -87,7 +87,7 @@ const LatestBlog = ({
               className="gi-blog-carousel owl-carousel"
             >
               <div className="gi-blog-item">
-                {getData().map((item: any, index: number) => (
+                {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
                   <SwiperSlide
                     key={index}
                     style={{ padding: "0 12px", backgroundColor: "transparent", border: "none" }}

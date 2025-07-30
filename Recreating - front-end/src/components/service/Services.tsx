@@ -32,7 +32,7 @@ const Services = ({
       <section className="gi-service-section padding-tb-40">
         <div className="container">
           <Row className=" m-tb-minus-12">
-            {getData().map((item: any, index: number) => (
+            {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
               <Fade
                 triggerOnce
                 direction="up"

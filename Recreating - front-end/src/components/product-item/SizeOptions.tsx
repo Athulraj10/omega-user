@@ -220,7 +220,7 @@ const SizeOptions: React.FC<SizeOptionsProps> = ({ categories, subCategory }) =>
     return (
         <>
             <ul className="gi-opt-size">
-                {options.map((data: any, index) => (
+                {options && Array.isArray(options) && options.map((data: any, index) => (
                     <li key={index} onClick={() => handleClick(index)} className={activeIndex === index ? "active" : ""}>
                         <a className="gi-opt-sz" data-tooltip={data.tooltip}>
                             {data.value}

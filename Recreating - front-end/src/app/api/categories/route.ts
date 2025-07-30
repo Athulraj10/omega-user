@@ -1,23 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { backendRequest } from '@/lib/backend';
+import backend from "@/lib/backend";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await backendRequest('/categories', {
-      method: 'GET',
-    });
+    console.log("Getting categories data");
 
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`);
-    }
+    const { data, status } = await backend.get("/api/v1/categories");
 
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.log("Backend response status:", status);
+    console.log("Categories data from backend:", data);
+
+    return NextResponse.json(data.data, { status });
+  } catch (error: any) {
+    console.error("Error getting categories:", error?.response?.data || error.message);
+
     return NextResponse.json(
-      { error: 'Failed to fetch categories' },
-      { status: 500 }
+      { message: error.response?.data?.message || "Failed to get categories" },
+      { status: error.response?.status || 500 }
     );
   }
 }

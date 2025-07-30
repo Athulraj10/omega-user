@@ -56,7 +56,7 @@ const Paginantion: React.FC<PaginationProps> = ({
           </a>
         </li>
 
-        {pageNumbers.map((page, index) =>
+        {pageNumbers && Array.isArray(pageNumbers) && pageNumbers.map((page, index) =>
           typeof page === "number" ? (
             <li key={index}>
               <a

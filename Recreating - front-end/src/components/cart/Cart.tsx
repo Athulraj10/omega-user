@@ -9,7 +9,9 @@ import Spinner from "../button/Spinner";
 import DiscountCoupon from "../discount-coupon/DiscountCoupon";
 import QuantitySelector from "../quantity-selector/QuantitySelector";
 import Link from "next/link";
-import { useCartWishlist } from "../../hooks/useCartWishlist";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { removeItem, updateQuantity } from "../../store/reducers/cartSlice";
 
 interface Country {
   id: string;
@@ -28,14 +30,11 @@ const Cart = ({
   hasPaginate = false,
   onError = () => {},
 }) => {
-  const {
-    cartData,
-    removeFromCart,
-    updateCartQuantity,
-    cartLoading,
-    isAuthenticated,
-    refreshCart
-  } = useCartWishlist();
+  const dispatch = useDispatch();
+  
+  // Get cart data from Redux
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
 
   const [filteredCountryData, setFilteredCountryData] = useState<Country[]>([]);
   const [filteredStateData, setFilteredStateData] = useState<State[]>([]);
@@ -83,16 +82,17 @@ const Cart = ({
   };
 
   useEffect(() => {
-    if (cartData && cartData.items && cartData.items.length > 0) {
-      setSubTotal(cartData.subtotal || 0);
+    if (cartItems && cartItems.length > 0) {
+      const total = cartItems.reduce((sum, item) => sum + (item.newPrice * item.quantity), 0);
+      setSubTotal(total);
       // Calculate VAT (20%)
-      const vatAmount = (cartData.subtotal || 0) * 0.2;
+      const vatAmount = total * 0.2;
       setVat(vatAmount);
     } else {
       setSubTotal(0);
       setVat(0);
     }
-  }, [cartData]);
+  }, [cartItems]);
 
   const handleDiscountApplied = (discount: number) => {
     setDiscount(discount);
@@ -101,12 +101,12 @@ const Cart = ({
   const discountAmount = subTotal * (discount / 100);
   const total = subTotal + vat - discountAmount;
 
-  const handleRemoveFromCart = async (productId: string) => {
-    await removeFromCart(productId);
+  const handleRemoveFromCart = (productId: number) => {
+    dispatch(removeItem(productId));
   };
 
-  const handleQuantityChange = async (productId: string, newQuantity: number) => {
-    await updateCartQuantity(productId, newQuantity);
+  const handleQuantityChange = (productId: number, newQuantity: number) => {
+    dispatch(updateQuantity({ id: productId, quantity: newQuantity }));
   };
 
   const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
@@ -120,12 +120,12 @@ const Cart = ({
     );
 
   const getData = () => {
-    if (hasPaginate) return data.data;
-    else return data;
+    if (hasPaginate) return cartItems || [];
+    else return cartItems || [];
   };
 
   // Check if cart has items safely
-  const hasCartItems = cartData && cartData.items && cartData.items.length > 0;
+  const hasCartItems = cartItems && cartItems.length > 0;
 
   return (
     <>
@@ -142,29 +142,6 @@ const Cart = ({
               className="gi-pro-content cart-pro-title"
             >
               Please <a href="/login">login</a> to view your cart.
-            </div>
-          ) : cartLoading ? (
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: "20px",
-                fontWeight: "300",
-              }}
-              className="gi-pro-content cart-pro-title"
-            >
-              <Spinner />
-              Loading cart...
-            </div>
-          ) : !hasCartItems ? (
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: "20px",
-                fontWeight: "300",
-              }}
-              className="gi-pro-content cart-pro-title"
-            >
-              Your cart is empty. <Link href="/">Continue Shopping</Link>
             </div>
           ) : (
             <div className="row">
@@ -188,61 +165,69 @@ const Cart = ({
                               </tr>
                             </thead>
                             <tbody>
-                              {cartData.items.map((item: any, index: number) => (
-                                <tr key={index}>
-                                  <td
-                                    data-label="Product"
-                                    className="gi-cart-pro-name"
-                                  >
-                                    <a href="/product-left-sidebar">
-                                      <img
-                                        className="gi-cart-pro-img mr-4"
-                                        src={item.image}
-                                        alt=""
-                                      />
-                                      {item.title}
-                                    </a>
-                                  </td>
-                                  <td
-                                    data-label="Price"
-                                    className="gi-cart-pro-price"
-                                  >
-                                    <span className="amount">
-                                      AED {item.unitPrice}
-                                    </span>
-                                  </td>
-                                  <td
-                                    data-label="Quantity"
-                                    className="gi-cart-pro-qty"
-                                    style={{ textAlign: "center" }}
-                                  >
-                                    <div className="cart-qty-plus-minus">
-                                      <QuantitySelector
-                                        quantity={item.quantity}
-                                        id={item.id}
-                                        setQuantity={(quantity: number) => 
-                                          handleQuantityChange(item.id, quantity)
-                                        }
-                                      />
-                                    </div>
-                                  </td>
-                                  <td
-                                    data-label="Total"
-                                    className="gi-cart-pro-subtotal"
-                                  >
-                                    AED {item.totalPrice}
-                                  </td>
-                                  <td
-                                    onClick={() => handleRemoveFromCart(item.id)}
-                                    data-label="Remove"
-                                    className="gi-cart-pro-remove"
-                                  >
-                                    <a href="#">
-                                      <i className="gicon gi-trash-o"></i>
-                                    </a>
-                                  </td>
-                                </tr>
-                              ))}
+                              {cartItems && Array.isArray(cartItems) && cartItems.map((item: any, index: number) => {
+                                const itemId = item.id || item._id;
+                                if (itemId === undefined || itemId === null) {
+                                  console.error("Cannot render cart item: item ID is undefined");
+                                  return null;
+                                }
+                                
+                                return (
+                                  <tr key={index}>
+                                    <td
+                                      data-label="Product"
+                                      className="gi-cart-pro-name"
+                                    >
+                                      <a href="/product-left-sidebar">
+                                        <img
+                                          className="gi-cart-pro-img mr-4"
+                                          src={item.image}
+                                          alt=""
+                                        />
+                                        {item.title}
+                                      </a>
+                                    </td>
+                                    <td
+                                      data-label="Price"
+                                      className="gi-cart-pro-price"
+                                    >
+                                      <span className="amount">
+                                        AED {item.unitPrice}
+                                      </span>
+                                    </td>
+                                    <td
+                                      data-label="Quantity"
+                                      className="gi-cart-pro-qty"
+                                      style={{ textAlign: "center" }}
+                                    >
+                                      <div className="cart-qty-plus-minus">
+                                        <QuantitySelector
+                                          quantity={item.quantity}
+                                          id={itemId}
+                                          setQuantity={(quantity: number) => 
+                                            handleQuantityChange(itemId, quantity)
+                                          }
+                                        />
+                                      </div>
+                                    </td>
+                                    <td
+                                      data-label="Total"
+                                      className="gi-cart-pro-subtotal"
+                                    >
+                                      AED {item.totalPrice}
+                                    </td>
+                                    <td
+                                      onClick={() => handleRemoveFromCart(itemId)}
+                                      data-label="Remove"
+                                      className="gi-cart-pro-remove"
+                                    >
+                                      <a href="#">
+                                        <i className="gicon gi-trash-o"></i>
+                                      </a>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -370,7 +355,7 @@ const Cart = ({
                       disableOnInteraction: false,
                     }}
                   >
-                    {getData().map((item: any, index: number) => (
+                    {getData() && Array.isArray(getData()) && getData().map((item: any, index: number) => (
                       <SwiperSlide key={index}>
                         <ItemCard item={item} />
                       </SwiperSlide>

@@ -46,7 +46,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                   </Link>
                   <Collapse in={activeMainMenu === "home"} >
                     <ul style={{ display: activeMainMenu === "home" ? "block" : "none" }} className="sub-menu height-transition-1s-ease">
-                      {home.map((data, index) => (
+                      {home && Array.isArray(home) && home.map((data, index) => (
                         <li key={index}>
                           <a href={data.href}>{data.name}</a>
                         </li>
@@ -68,7 +68,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                         </Link>
                         <Collapse in={activeSubMenu === "Classic"} >
                           <ul style={{ display: activeSubMenu === 'Classic' ? 'block' : 'none' }} className="sub-menu height-transition-1s-ease">
-                            {classic.map((data, index) => (
+                            {classic && Array.isArray(classic) && classic.map((data, index) => (
                               <li key={index}>
                                 <Link href={data.href}>{data.name}</Link>
                               </li>
@@ -83,7 +83,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                         </Link>
                         <Collapse in={activeSubMenu === "Banner"} >
                           <ul style={{ display: activeSubMenu === "Banner" ? "block" : "none" }} className="sub-menu height-transition-1s-ease">
-                            {banner.map((data, index) => (
+                            {banner && Array.isArray(banner) && banner.map((data, index) => (
                               <li key={index}>
                                 <Link href={data.href}>Banner {data.name}</Link>
                               </li>
@@ -98,7 +98,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                         </Link>
                         <Collapse in={activeSubMenu === "Columns"} >
                           <ul style={{ display: activeSubMenu === "Columns" ? "block" : "none" }} className="sub-menu height-transition-1s-ease">
-                            {column.map((data, index) => (
+                            {column && Array.isArray(column) && column.map((data, index) => (
                               <li key={index}>
                                 <Link href={data.href}>{data.name}</Link>
                               </li>
@@ -113,7 +113,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                         </Link>
                         <Collapse in={activeSubMenu === "List"} >
                           <ul style={{ display: activeSubMenu === "List" ? "block" : "none" }} className="sub-menu height-transition-1s-ease">
-                            {list.map((data, index) => (
+                            {list && Array.isArray(list) && list.map((data, index) => (
                               <li key={index}>
                                 <Link href={data.href}>{data.name}</Link>
                               </li>
@@ -169,7 +169,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                   </Link>
                   <Collapse in={activeMainMenu === "blog"} >
                     <ul style={{ display: activeMainMenu === "blog" ? "block" : 'none' }} className="sub-menu height-transition-1s-ease">
-                      {blog.map((data, index) => (
+                      {blog && Array.isArray(blog) && blog.map((data, index) => (
                         <li key={index}>
                           <Link href={data.href}>{data.name}</Link>
                         </li>
@@ -184,7 +184,7 @@ const MobileManuSidebar = ({ isMobileMenuOpen, closeMobileManu, toggleMainMenu, 
                   </Link>
                   <Collapse in={activeMainMenu === "pages"} >
                     <ul style={{ display: activeMainMenu === "pages" ? "block" : "none" }} className="sub-menu height-transition-1s-ease">
-                      {pages.map((data, index) => (
+                      {pages && Array.isArray(pages) && pages.map((data, index) => (
                         <li key={index}>
                           <Link href={data.href}>{data.name}</Link>
                         </li>
