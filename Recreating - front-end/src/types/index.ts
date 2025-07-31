@@ -119,6 +119,22 @@ export interface Wallet {
     value: number
   }
 }
+export interface Banner {
+  _id: string;
+  image: string;
+  titleLine1: string;
+  titleLine2: string;
+  offerText: string;
+  offerHighlight: string;
+  buttonText: string;
+  device: "desktop" | "mobile";
+  status: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 export type BannerItem = {
   titleLine1: string;
   titleLine2: string;

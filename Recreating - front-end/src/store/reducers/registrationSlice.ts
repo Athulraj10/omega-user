@@ -32,7 +32,6 @@ const registrationSlice = createSlice({
       state.token = null;
     },
     setUserData: (state, action) => {
-      // Handle cases where payload might be undefined or have different structure
       if (action.payload) {
         state.address = action.payload.address || null;
         state.wallet = action.payload.wallet || null;

@@ -13,6 +13,7 @@ import filterReducer from "./reducers/filterReducer";
 import themeSlice from "./reducers/themeSlice";
 import categorySlice from "./reducers/categorySlice";
 import productSlice from "./reducers/productSlice";
+import bannerSlice from "./reducers/banner";
 
 // Configure persist for each slice separately
 const persistConfigCart = { key: "cart", storage };
@@ -24,6 +25,7 @@ const persistConfigFilter = { key: "filter", storage };
 const persistConfigTheme = { key: "theme", storage };
 const persistConfigCategory = { key: "category", storage };
 const persistConfigProduct = { key: "product", storage };
+const persistConfigBanner = { key: "banner", storage };
 
 // Wrap each reducer with persistReducer
 const persistedCartReducer = persistReducer(persistConfigCart, cartSlice);
@@ -47,6 +49,7 @@ const persistedFilterReducer = persistReducer(
 const persistedThemeReducer = persistReducer(persistConfigTheme, themeSlice);
 const persistedCategoryReducer = persistReducer(persistConfigCategory, categorySlice);
 const persistedProductReducer = persistReducer(persistConfigProduct, productSlice);
+const persistedBannerReducer = persistReducer(persistConfigBanner, bannerSlice);
 
 // Combine reducers
 const rootReducer = combineReducers({
@@ -59,6 +62,7 @@ const rootReducer = combineReducers({
   theme: persistedThemeReducer,
   category: persistedCategoryReducer,
   product: persistedProductReducer,
+  banner: persistedBannerReducer,
 });
 
 // Configure store
