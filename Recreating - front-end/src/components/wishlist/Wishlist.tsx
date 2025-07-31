@@ -10,7 +10,6 @@ import { Col, Row } from "react-bootstrap"
 import useSWR from "swr"
 import fetcher from "../fetcher-api/Fetcher"
 import Spinner from "../button/Spinner"
-import { useWishlistRedux } from "../../hooks/useWishlistRedux";
 
 interface WishlistItem {
   id: string;
@@ -51,16 +50,6 @@ const Wishlist = ({
 }) => {
   const dispatch = useDispatch();
   const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString("en-GB"));
-
-  // Use the new Redux-based wishlist hook
-  const {
-    items: wishlistItems,
-    loading: wishlistLoading,
-    error: wishlistError,
-    removeFromWishlist,
-    removingItem,
-    totalItems
-  } = useWishlistRedux();
 
   // Get cart items from Redux
   const cartItems = useSelector((state: RootState) => state.cart.items);

@@ -26,7 +26,7 @@ interface Order {
   totalPrice: number;
   status: string;
   products: Item[];
-  address: any; // you can strongly type this if needed
+  address: any;
 }
 
 export interface CartState {
@@ -48,39 +48,11 @@ export const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    setCartItems(state, action: PayloadAction<Item[]>) {
+    setCartItems(state, action: PayloadAction<any>) {
       state.items = action.payload;
     },
-    addItem(state, action: PayloadAction<Item>) {
+    addItem(state, action: PayloadAction<any>) {
       state.items.push(action.payload);
-    },
-    removeItem(state, action: PayloadAction<number>) {
-      state.items = state.items.filter((item) => item.id !== action.payload);
-    },
-    updateQuantity(
-      state,
-      action: PayloadAction<{ id: number; quantity: number }>
-    ) {
-      const item = state.items.find((i) => i.id === action.payload.id);
-      if (item) item.quantity = action.payload.quantity;
-    },
-    updateItemQuantity(state, action: PayloadAction<Item[]>) {
-      state.items = action.payload;
-    },
-    clearCart(state) {
-      state.items = [];
-    },
-    addOrder(state, action: PayloadAction<Order>) {
-      state.orders.push(action.payload);
-    },
-    setOrders(state, action: PayloadAction<Order[]>) {
-      state.orders = action.payload;
-    },
-    toggleSwitch(state) {
-      state.isSwitchOn = !state.isSwitchOn;
-      if (typeof window !== "undefined") {
-        localStorage.setItem("switch", JSON.stringify(state.isSwitchOn));
-      }
     },
   },
 });
@@ -88,13 +60,6 @@ export const cartSlice = createSlice({
 export const {
   setCartItems,
   addItem,
-  removeItem,
-  updateQuantity,
-  updateItemQuantity,
-  clearCart,
-  addOrder,
-  setOrders,
-  toggleSwitch,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

@@ -11,8 +11,7 @@ import ZoomImage from "@/components/zoom-image/ZoomImage";
 import StarRating from "../../stars/StarRating";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { addItem, updateQuantity } from "../../../store/reducers/cartSlice";
-import { useWishlistRedux } from "../../../hooks/useWishlistRedux";
+import { addItem} from "../../../store/reducers/cartSlice";
 
 const SingleProductContent = ({
   productData,
@@ -28,15 +27,6 @@ const SingleProductContent = ({
   const slider1 = useRef<Slider | null>(initialRef);
   const slider2 = useRef<Slider | null>(initialRef);
   const hasCheckedWishlist = useRef<Set<string>>(new Set());
-
-  // Use the new Redux-based wishlist hook
-  const {
-    addToWishlist,
-    removeFromWishlist,
-    isItemInWishlist,
-    addingItem,
-    removingItem
-  } = useWishlistRedux();
 
   // Get cart data from Redux
   const cartItems = useSelector((state: RootState) => state.cart.items);

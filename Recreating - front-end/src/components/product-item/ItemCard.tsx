@@ -11,7 +11,7 @@ import Link from "next/link";
 import { showSuccessToast } from "../toast-popup/Toastify";
 import { RootState } from "@/store";
 import { addCompare, removeCompareItem } from "@/store/reducers/compareSlice";
-import { useWishlistRedux } from "@/hooks/useWishlistRedux";
+
 
 interface Item {
   id: number;
@@ -51,19 +51,8 @@ const ItemCard = ({ data }: any) => {
   const dispatch = useDispatch();
   const compareItems = useSelector((state: RootState) => state.compare.compare);
   const cartItems = useSelector((state: RootState) => state.cart.items);
+  const wishlistRedux = useSelector((state: RootState) => state.wishlist.items);
   
-  // Use the new Redux-based wishlist hook
-  const { 
-    items: wishlistItems, 
-    addToWishlist, 
-    removeFromWishlist,
-    isItemInWishlist,
-    addingItem,
-    removingItem 
-  } = useWishlistRedux();
-
-  console.log({ wishlistItems })
-  console.log({ cartItems })
 
   useEffect(() => {
     const itemsFromLocalStorage =
