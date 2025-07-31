@@ -4,6 +4,10 @@ import {
   setBanners,
   selectBanners,
 } from "./reducers/banner";
+import {
+  setCategories,
+  selectCategories,
+} from "./reducers/categorySlice";
 import { Banner } from "../types";
 
 // Typed hooks
@@ -26,5 +30,24 @@ export const useBanner = () => {
     
     // Actions
     setBannersData,
+  };
+};
+
+// Category hooks
+export const useCategory = () => {
+  const dispatch = useAppDispatch();
+  
+  const categories = useAppSelector(selectCategories);
+
+  const setCategoriesData = (categoriesData: any[]) => {
+    dispatch(setCategories(categoriesData));
+  };
+
+  return {
+    // State
+    categories,
+    
+    // Actions
+    setCategoriesData,
   };
 };
