@@ -16,7 +16,7 @@ const Category = ({
 }) => {
   const { direction } = useSelector((state: RootState) => state.theme);
  
-  const { categories,loading } = useSelector((state: RootState) => state.categories);
+  const { categories,loading } = useSelector((state: RootState) => state.category);
   console.log("categories from Redux:", categories);
   // Handle success and error callbacks
   React.useEffect(() => {

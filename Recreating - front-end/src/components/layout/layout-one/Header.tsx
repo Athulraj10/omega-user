@@ -36,25 +36,22 @@ function Header() {
   return (
     <>
       <header className="gi-header" key={forceUpdate}>
-        {/* <FeatureTools /> */}
         <HeaderOne
           key={`header-one-${forceUpdate}`}
           wishlistItems={wishlist}
           cartItems={cartItems}
-          cartCount={cartItems.items.length}
-          wishlistCount={wishlistCount}
+          cartCount={cartItems.length}
+          wishlistCount={0}
         />
         <HeaderTwo
           key={`header-two-${forceUpdate}`}
           cartItems={cartItems}
-          wishlistItems={wishlistItems}
-          cartCount={cartCount}
-          wishlistCount={wishlistCount}
+          wishlistItems={wishlist}
+          cartCount={0}
+          wishlistCount={0}
           isAuthenticated={isAuthenticated}
         />
-        {/* <HeaderManu /> */}
       </header>
-      {/* DebugWishlistCount removed */}
     </>
   );
 }

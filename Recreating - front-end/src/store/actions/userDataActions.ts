@@ -14,15 +14,15 @@ export const fetchUserData = (token: string) => async (dispatch: AppDispatch) =>
 
         console.log({cart, wishlist, userData})
 
-        if (cart && cart.data) {
+        if (cart && cart?.data) {
             dispatch(setCartItems(cart.data));
         }
         
-        if (wishlist && wishlist.data) {
+        if (wishlist && wishlist?.data) {
             dispatch(setWishlistData(wishlist.data));
         }
         
-        if (userData && userData.data) {
+        if (userData && userData?.data) {
             dispatch(setUserData(userData.data));
         }
     } catch (err) {
