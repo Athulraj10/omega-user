@@ -11,8 +11,7 @@ export async function GET(
 
     const { data, status } = await backend.get(`/api/v1/categories/${id}`);
 
-    console.log("Backend response status:", status);
-    console.log("Category data from backend:", data);
+
 
     return NextResponse.json(data, { status });
   } catch (error: any) {

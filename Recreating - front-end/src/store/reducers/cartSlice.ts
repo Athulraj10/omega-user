@@ -51,15 +51,11 @@ export const cartSlice = createSlice({
     setCartItems(state, action: PayloadAction<any>) {
       state.items = action.payload;
     },
-    addItem(state, action: PayloadAction<any>) {
-      state.items.push(action.payload);
-    },
   },
 });
 
 export const {
   setCartItems,
-  addItem,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

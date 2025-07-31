@@ -10,8 +10,7 @@ export async function GET(
       
       const { data, status } = await backend.get(`/api/v1/products/related/${params.currentPRId}`);
 
-    console.log("Backend response status:", status);
-    console.log("Product data from backend:", data);
+
 
     return NextResponse.json(data, { status });
   } catch (error: any) {

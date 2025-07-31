@@ -18,9 +18,6 @@ export async function PUT(
       },
     });
 
-    console.log("Backend response status:", status);
-    console.log("Cart data from backend:", data);
-
     return NextResponse.json(data, { status });
   } catch (error: any) {
     console.error("Error updating cart:", error?.response?.data || error.message);

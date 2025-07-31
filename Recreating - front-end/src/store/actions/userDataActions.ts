@@ -12,8 +12,6 @@ export const fetchUserData = (token: string) => async (dispatch: AppDispatch) =>
             fetchWithAuth('/api/users/user-profile', token),
         ]);
 
-        console.log({cart, wishlist, userData})
-
         if (cart && cart?.data) {
             dispatch(setCartItems(cart.data));
         }

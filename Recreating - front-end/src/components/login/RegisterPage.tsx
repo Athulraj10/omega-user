@@ -182,7 +182,7 @@ const RegisterPage = ({ onSuccess = () => { }, onError = () => { } }) => {
       });
 
       const data = await response.json();
-      console.log('data from backend', data)
+
       if (data?.meta?.code !== 200) {
         showErrorToast(data?.meta?.message || "Registration failed")
         return

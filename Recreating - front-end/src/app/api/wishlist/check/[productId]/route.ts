@@ -17,8 +17,7 @@ export async function GET(
       },
     });
 
-    console.log("Backend response status:", status);
-    console.log("Wishlist check data from backend:", data);
+
 
     return NextResponse.json(data, { status });
   } catch (error: any) {

@@ -17,8 +17,6 @@ export async function DELETE(
       },
     });
 
-    console.log("Backend response status:", status);
-    console.log("Wishlist data from backend:", data);
 
     return NextResponse.json(data, { status });
   } catch (error: any) {

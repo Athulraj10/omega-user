@@ -27,7 +27,7 @@ const Deal = ({
       });
 
       const result = await response.json();
-      console.log('data from backend', result)
+   
 
       if (result?.meta?.code === 200) {
         setData(result.data)
@@ -48,8 +48,6 @@ const Deal = ({
     if (hasPaginate) return data;
     else return data;
   };
-
-  console.log({data})
 
   return (
     <>

@@ -67,7 +67,7 @@ function HeaderTwo({ cartItems, wishlistItems, cartCount, wishlistCount, isAuthe
       });
 
       const data = await response.json();
-      console.log('data from backend', data)
+
       if (data?.meta?.code !== 200) {
         showErrorToast(data?.meta?.message || "Logout failed")
         return

@@ -7,8 +7,7 @@ export async function GET(request: NextRequest) {
 
     const { data, status } = await backend.get("/api/v1/categories");
 
-    console.log("Backend response status:", status);
-    console.log("Categories data from backend:", data);
+
 
     return NextResponse.json(data.data, { status });
   } catch (error: any) {
