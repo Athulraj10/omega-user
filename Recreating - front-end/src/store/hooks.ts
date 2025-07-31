@@ -8,6 +8,14 @@ import {
   setCategories,
   selectCategories,
 } from "./reducers/categorySlice";
+import {
+  setProducts,
+  selectProducts,
+} from "./reducers/productSlice";
+import {
+  setDeals,
+  selectDeals,
+} from "./reducers/dealSlice";
 import { Banner } from "../types";
 
 // Typed hooks
@@ -49,5 +57,43 @@ export const useCategory = () => {
     
     // Actions
     setCategoriesData,
+  };
+};
+
+// Product hooks
+export const useProduct = () => {
+  const dispatch = useAppDispatch();
+  
+  const products = useAppSelector(selectProducts);
+
+  const setProductsData = (productsData: any[]) => {
+    dispatch(setProducts(productsData));
+  };
+
+  return {
+    // State
+    products,
+    
+    // Actions
+    setProductsData,
+  };
+};
+
+// Deal hooks
+export const useDeal = () => {
+  const dispatch = useAppDispatch();
+  
+  const deals = useAppSelector(selectDeals);
+
+  const setDealsData = (dealsData: any[]) => {
+    dispatch(setDeals(dealsData));
+  };
+
+  return {
+    // State
+    deals,
+    
+    // Actions
+    setDealsData,
   };
 };
