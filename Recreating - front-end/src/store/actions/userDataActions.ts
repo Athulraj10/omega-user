@@ -1,8 +1,8 @@
 import { AppDispatch } from "@/store";
 import { fetchWithAuth } from "@/lib/auth";
-import { setWishlistData } from "../reducers/wishlistSlice";
 import { setCartItems } from "../reducers/cartSlice";
 import { setUserData } from "../reducers/registrationSlice";
+import { setWishlistItems } from "../reducers/wishlistSlice";
 
 export const fetchUserData = (token: string) => async (dispatch: AppDispatch) => {
     try {
@@ -17,7 +17,7 @@ export const fetchUserData = (token: string) => async (dispatch: AppDispatch) =>
         }
         
         if (wishlist && wishlist?.data) {
-            dispatch(setWishlistData(wishlist.data));
+            dispatch(setWishlistItems(wishlist.data.items));
         }
         
         if (userData && userData?.data) {

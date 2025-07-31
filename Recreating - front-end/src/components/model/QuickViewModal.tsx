@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import StarRating from "../stars/StarRating";
 import { useDispatch, useSelector } from "react-redux";
-import { addItem, updateItemQuantity } from "../../store/reducers/cartSlice";
 import { Fade } from "react-awesome-reveal";
 import { Col, Row } from "react-bootstrap";
 import QuantitySelector from "../quantity-selector/QuantitySelector";
@@ -10,6 +9,7 @@ import { RootState } from "../../store";
 import { showSuccessToast } from "../toast-popup/Toastify";
 import ZoomImage from "@/components/zoom-image/ZoomImage";
 import SizeOptions from "../product-item/SizeOptions";
+import { useCart } from "@/store/hooks";
 
 interface Category {
   _id: string;
@@ -47,14 +47,14 @@ const fallbackImage = "/assets/img/product-images/1_1.jpg";
 
 const QuickViewModal = ({ show, handleClose, data }: QuickViewModalProps) => {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const { items: cartItems, addToCartData, updateCartItemData } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   const handleCart = () => {
     const isItemInCart = cartItems.some((item) => item._id === data._id);
 
     const newItem = {
-      id: data._id,
+      _id: typeof data._id === 'string' ? parseInt(data._id) : data._id,
       title: data.name,
       newPrice: data.discountPrice,
       waight: data.weight,
@@ -72,7 +72,7 @@ const QuickViewModal = ({ show, handleClose, data }: QuickViewModalProps) => {
     };
 
     if (!isItemInCart) {
-      dispatch(addItem(newItem));
+      addToCartData(newItem);
     } else {
       const updatedCartItems = cartItems.map((item) => {
         const itemId = item.id || item._id;
@@ -86,7 +86,18 @@ const QuickViewModal = ({ show, handleClose, data }: QuickViewModalProps) => {
         }
         return item;
       });
-      dispatch(updateItemQuantity(updatedCartItems));
+      
+      // Find the updated item and update its quantity
+      const updatedItem = updatedCartItems.find((item) => {
+        const itemId = item.id || item._id;
+        const dataId = data._id;
+        return itemId !== undefined && itemId !== null && dataId !== undefined && dataId !== null && itemId === dataId;
+      });
+      
+      if (updatedItem) {
+        const numericId = typeof data._id === 'string' ? parseInt(data._id) : data._id;
+        updateCartItemData(numericId, updatedItem.quantity);
+      }
     }
 
     showSuccessToast("Add product in Cart Successfully!", { icon: false });

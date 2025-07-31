@@ -34,6 +34,7 @@ import {
   selectCartError,
   selectCartSwitch,
 } from "./reducers/cartSlice";
+import { updateCartItemQuantity, removeCartItem, fetchCartItems } from "./actions/cartActions";
 import {
   setWishlistItems,
   getWishlistItems,
@@ -161,12 +162,24 @@ export const useCart = () => {
     dispatch(addToCart(item));
   };
 
-  const updateCartItemData = (productId: number, quantity: number) => {
+  const updateCartItemData = (productId: string | number, quantity: number) => {
     dispatch(updateCartItem({ productId, quantity }));
   };
 
-  const removeFromCartData = (productId: number) => {
+  const updateCartItemQuantityAsync = (productId: string, quantity: number) => {
+    dispatch(updateCartItemQuantity({ productId, quantity }));
+  };
+
+  const removeFromCartData = (productId: string | number) => {
     dispatch(removeFromCart(productId));
+  };
+
+  const removeCartItemAsync = (productId: string) => {
+    dispatch(removeCartItem(productId));
+  };
+
+  const fetchCartItemsAsync = () => {
+    dispatch(fetchCartItems());
   };
 
   const setCartCountData = (countData: number) => {
@@ -206,7 +219,10 @@ export const useCart = () => {
     getCartItemsData,
     addToCartData,
     updateCartItemData,
+    updateCartItemQuantityAsync,
     removeFromCartData,
+    removeCartItemAsync,
+    fetchCartItemsAsync,
     setCartCountData,
     getCartCountData,
     setLoading,

@@ -1,10 +1,12 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 
 interface Item {
-  _id: number;
+  id: string;
+  _id?: string;
   title: string;
   oldPrice: number;
-  waight: string;
+  weight?: string;
+  waight?: string;
   image: string;
   imageTwo: string;
   date: string;
@@ -13,9 +15,14 @@ interface Item {
   newPrice: number;
   location: string;
   brand: string;
-  sku: number;
+  sku: string | number;
   category: string;
   quantity: number;
+  unitPrice?: number;
+  totalPrice?: number;
+  isAvailable?: boolean;
+  stockAvailable?: number;
+  selectedOptions?: any;
 }
 
 interface Order {
@@ -68,7 +75,10 @@ export const cartSlice = createSlice({
 
     // Add item to cart
     addToCart(state, action: PayloadAction<Item>) {
-      const existingItem = state.items.find(item => item._id === action.payload._id);
+      const existingItem = state.items.find(item => 
+        (item.id && item.id === action.payload.id) || 
+        (item._id && item._id === action.payload._id)
+      );
       if (existingItem) {
         existingItem.quantity += action.payload.quantity;
       } else {
@@ -78,8 +88,11 @@ export const cartSlice = createSlice({
     },
 
     // Update cart item quantity
-    updateCartItem(state, action: PayloadAction<{ productId: number; quantity: number }>) {
-      const item = state.items.find(item => item._id === action.payload.productId);
+    updateCartItem(state, action: PayloadAction<{ productId: string | number; quantity: number }>) {
+      const item = state.items.find(item => 
+        (item.id && item.id === action.payload.productId.toString()) || 
+        (item._id && item._id === action.payload.productId.toString())
+      );
       if (item) {
         item.quantity = action.payload.quantity;
       }
@@ -87,8 +100,12 @@ export const cartSlice = createSlice({
     },
 
     // Remove item from cart
-    removeFromCart(state, action: PayloadAction<number>) {
-      state.items = state.items.filter(item => item._id !== action.payload);
+    removeFromCart(state, action: PayloadAction<string | number>) {
+      const productId = action.payload.toString();
+      state.items = state.items.filter(item => 
+        (item.id && item.id !== productId) && 
+        (item._id && item._id !== productId)
+      );
       state.error = null;
     },
 
@@ -129,6 +146,64 @@ export const cartSlice = createSlice({
         localStorage.setItem("switch", JSON.stringify(state.isSwitchOn));
       }
     },
+  },
+  extraReducers: (builder) => {
+    // Handle async thunk actions
+    builder
+      // Update quantity
+      .addCase("cart/updateQuantity/pending", (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase("cart/updateQuantity/fulfilled", (state, action: any) => {
+        state.loading = false;
+        state.error = null;
+        if (action.payload) {
+          const cartData = action.payload;
+          const items = cartData.items || cartData;
+          state.items = items;
+        }
+      })
+      .addCase("cart/updateQuantity/rejected", (state, action: any) => {
+        state.loading = false;
+        state.error = action.error?.message || "Failed to update cart item";
+      })
+      // Remove item
+      .addCase("cart/removeItem/pending", (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase("cart/removeItem/fulfilled", (state, action: any) => {
+        state.loading = false;
+        state.error = null;
+        if (action.payload) {
+          const cartData = action.payload;
+          const items = cartData.items || cartData;
+          state.items = items;
+        }
+      })
+      .addCase("cart/removeItem/rejected", (state, action: any) => {
+        state.loading = false;
+        state.error = action.error?.message || "Failed to remove cart item";
+      })
+      // Fetch items
+      .addCase("cart/fetchItems/pending", (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase("cart/fetchItems/fulfilled", (state, action: any) => {
+        state.loading = false;
+        state.error = null;
+        if (action.payload) {
+          const cartData = action.payload;
+          const items = cartData.items || cartData;
+          state.items = items;
+        }
+      })
+      .addCase("cart/fetchItems/rejected", (state, action: any) => {
+        state.loading = false;
+        state.error = action.error?.message || "Failed to fetch cart items";
+      });
   },
 });
 

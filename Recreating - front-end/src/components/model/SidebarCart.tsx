@@ -1,20 +1,44 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store";
+import { useCart } from "../../store/hooks";
 import Link from "next/link";
 import QuantitySelector from "../quantity-selector/QuantitySelector";
-import { removeItem, updateQuantity } from "../../store/reducers/cartSlice";
 
 const SidebarCart = ({ closeCart, isCartOpen }: any) => {
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state: RootState) => state.cart.items);
-  const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
-
+  const { 
+    items: cartItems, 
+    loading, 
+    error,
+    updateCartItemQuantityAsync, 
+    removeCartItemAsync,
+    fetchCartItemsAsync
+  } = useCart();
+  
+  // Get authentication state from localStorage or context
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
+  
   const [subTotal, setSubTotal] = useState(0);
   const [vat, setVat] = useState(0);
 
+  console.log('cartItems', cartItems);
+  console.log('loading', loading);
+  console.log('error', error);
+  console.log('isAuthenticated', isAuthenticated);
+
   useEffect(() => {
-    if (cartItems?.length > 0) {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    const isAuth = !!token;
+    setIsAuthenticated(isAuth);
+    
+    // Fetch cart items if authenticated
+    if (isAuth) {
+      fetchCartItemsAsync();
+    }
+  }, [fetchCartItemsAsync]);
+
+  useEffect(() => {
+    if (cartItems && cartItems.length > 0) {
       const total = cartItems.reduce((sum, item) => sum + item.newPrice * item.quantity, 0);
       setSubTotal(total);
       setVat(total * 0.2);
@@ -26,12 +50,27 @@ const SidebarCart = ({ closeCart, isCartOpen }: any) => {
 
   const total = subTotal + vat;
 
-  const handleRemoveFromCart = (productId: string) => {
-    dispatch(removeItem(productId));
+  const handleRemoveFromCart = async (productId: string) => {
+    try {
+      setRemovingItems(prev => new Set(prev).add(productId));
+      await removeCartItemAsync(productId);
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    } finally {
+      setRemovingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+    }
   };
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
-    dispatch(updateQuantity({ id: productId, quantity: newQuantity }));
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+    try {
+      await updateCartItemQuantityAsync(productId, newQuantity);
+    } catch (error) {
+      console.error("Error updating cart item quantity:", error);
+    }
   };
 
   const hasCartItems = cartItems && cartItems.length > 0;
@@ -57,13 +96,21 @@ const SidebarCart = ({ closeCart, isCartOpen }: any) => {
               <div className="gi-cart-login-prompt">
                 <p>Please <a href="/login">login</a> to view your cart</p>
               </div>
+            ) : loading ? (
+              <div className="gi-pro-content cart-pro-title">
+                Loading cart...
+              </div>
+            ) : error ? (
+              <div className="gi-pro-content cart-pro-title">
+                Error: {error}
+              </div>
             ) : !hasCartItems ? (
               <div className="gi-pro-content cart-pro-title">
                 Your cart is empty.
               </div>
             ) : (
               <ul className="gi-cart-pro-items">
-                {cartItems.map((item: any, index: number) => {
+                {cartItems?.map((item: any, index: number) => {
                   const itemId = item.id || item._id;
                   if (!itemId) return null;
 
@@ -77,7 +124,7 @@ const SidebarCart = ({ closeCart, isCartOpen }: any) => {
                           {item.title}
                         </Link>
                         <span className="cart-price">
-                          {item.weight || "1 pcs"}{" "}
+                          {item.weight || item.waight || "1 pcs"}{" "}
                           <span>AED {(item.newPrice * item.quantity).toFixed(2)}</span>
                         </span>
                         <div className="qty-plus-minus gi-qty-rtl">
@@ -93,8 +140,12 @@ const SidebarCart = ({ closeCart, isCartOpen }: any) => {
                           href="#/"
                           className="remove"
                           onClick={() => handleRemoveFromCart(itemId)}
+                          style={{ 
+                            pointerEvents: removingItems.has(itemId) ? 'none' : 'auto',
+                            opacity: removingItems.has(itemId) ? 0.5 : 1
+                          }}
                         >
-                          ×
+                          {removingItems.has(itemId) ? '...' : '×'}
                         </Link>
                       </div>
                     </li>

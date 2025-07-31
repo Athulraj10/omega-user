@@ -2,33 +2,33 @@ import { useEffect, useState } from "react";
 import StarRating from "../stars/StarRating";
 import QuickViewModal from "../model/QuickViewModal";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addItem,
-  setCartItems,
-  updateItemQuantity,
-} from "../../store/reducers/cartSlice";
 import Link from "next/link";
 import { showSuccessToast } from "../toast-popup/Toastify";
 import { RootState } from "@/store";
 import { addCompare, removeCompareItem } from "@/store/reducers/compareSlice";
-
+import { useCart, useWishlist } from "@/store/hooks";
 
 interface Item {
-  id: number;
-  title: string;
-  newPrice: number;
-  waight: string;
-  image: string;
-  imageTwo: string;
-  date: string;
-  status: string;
-  rating: number;
-  oldPrice: number;
-  location: string;
-  brand: string;
-  sku: number;
-  category: string;
-  quantity: number;
+  id?: number;
+  _id?: string;
+  title?: string;
+  name?: string;
+  newPrice?: number;
+  discountPrice?: number;
+  waight?: string;
+  image?: string;
+  images?: string[];
+  imageTwo?: string;
+  date?: string;
+  status?: string;
+  rating?: number;
+  oldPrice?: number;
+  location?: string;
+  brand?: string;
+  sku?: number;
+  category?: string | { name: string };
+  quantity?: number;
+  slug?: string;
 }
 
 // interface ProductData {
@@ -50,9 +50,22 @@ const ItemCard = ({ data }: any) => {
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const compareItems = useSelector((state: RootState) => state.compare.compare);
-  const cartItems = useSelector((state: RootState) => state.cart.items);
-  const wishlistRedux = useSelector((state: RootState) => state.wishlist.items);
   
+  // Use new Redux hooks
+  const { 
+    items: cartItems, 
+    addToCartData, 
+    updateCartItemData,
+    setCartItemsData 
+  } = useCart();
+  
+  const { 
+    items: wishlistItems, 
+    addToWishlistData, 
+    removeFromWishlistData,
+    addingItem,
+    removingItem
+  } = useWishlist();
 
   useEffect(() => {
     const itemsFromLocalStorage =
@@ -60,9 +73,9 @@ const ItemCard = ({ data }: any) => {
         ? JSON.parse(localStorage.getItem("products") || "[]")
         : [];
     if (itemsFromLocalStorage.length) {
-      dispatch(setCartItems(itemsFromLocalStorage));
+      setCartItemsData(itemsFromLocalStorage);
     }
-  }, [dispatch]);
+  }, [setCartItemsData]);
 
   const handleCart = (data: Item) => {
     const itemId = data.id || data._id;
@@ -71,22 +84,47 @@ const ItemCard = ({ data }: any) => {
       return;
     }
     
-    const isItemInCart = cartItems.some((item: Item) => (item.id || item._id) === itemId);
+    // Convert itemId to number for cart operations
+    const numericItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+    
+    const isItemInCart = cartItems.some((item: any) => (item.id || item._id) === numericItemId);
 
     if (!isItemInCart) {
-      dispatch(addItem({ ...data, quantity: 1 }));
+      // Create cart item with proper structure
+      const cartItem = {
+        _id: numericItemId,
+        title: data.name || data.title || '',
+        oldPrice: data.oldPrice || 0,
+        waight: data.waight || '',
+        image: data.images?.[0] || data.image || '',
+        imageTwo: data.imageTwo || '',
+        date: data.date || new Date().toISOString(),
+        status: data.status || 'Available',
+        rating: data.rating || 0,
+        newPrice: data.discountPrice || data.newPrice || 0,
+        location: data.location || '',
+        brand: data.brand || '',
+        sku: data.sku || 0,
+        category: typeof data.category === 'object' ? data.category.name : data.category || '',
+        quantity: 1,
+      };
+      
+      addToCartData(cartItem);
       showSuccessToast("Add product in Cart Successfully!");
     } else {
-      const updatedCartItems = cartItems.map((item: Item) =>
-        (item.id || item._id) === itemId
+      const updatedCartItems = cartItems.map((item: any) =>
+        (item.id || item._id) === numericItemId
           ? {
             ...item,
             quantity: item.quantity + 1,
-            price: item.newPrice + data.newPrice,
+            price: item.newPrice + (data.newPrice || 0),
           } // Increment quantity and update price
           : item
       );
-      dispatch(updateItemQuantity(updatedCartItems));
+      const updatedItem = updatedCartItems.find((item: any) => (item.id || item._id) === numericItemId);
+      if (updatedItem) {
+        updateCartItemData(numericItemId, updatedItem.quantity);
+      }
       showSuccessToast("Add product in Cart Successfully!");
     }
   };
@@ -96,7 +134,7 @@ const ItemCard = ({ data }: any) => {
     // Check for both id and _id properties, with fallback to string conversion
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) return false;
-    return isItemInWishlist(itemId.toString());
+    return wishlistItems.some((item: any) => (item.id || item._id) === itemId);
   };
 
   const handleWishlist = async (data: Item) => {
@@ -107,7 +145,23 @@ const ItemCard = ({ data }: any) => {
           console.error("Cannot add to wishlist: item ID is undefined");
           return;
         }
-        await addToWishlist(itemId.toString());
+        
+        // Create wishlist item object
+        const wishlistItem = {
+          id: itemId.toString(),
+          title: data.name || data.title || '',
+          price: data.discountPrice || data.newPrice || 0,
+          image: data.images?.[0] || data.image || '',
+          slug: data.slug || '',
+          category: typeof data.category === 'object' ? data.category.name : data.category || '',
+          brand: data.brand || '',
+          rating: data.rating || 0,
+          reviews: 0,
+          inStock: true,
+          addedAt: new Date().toISOString(),
+        };
+        
+        addToWishlistData(wishlistItem);
         showSuccessToast("Add product in Wishlist Successfully!", {
           icon: false,
         });
@@ -117,7 +171,7 @@ const ItemCard = ({ data }: any) => {
           console.error("Cannot remove from wishlist: item ID is undefined");
           return;
         }
-        await removeFromWishlist(itemId.toString());
+        removeFromWishlistData(itemId.toString());
         showSuccessToast("Remove product on Wishlist Successfully!", {
           icon: false,
         });
@@ -130,7 +184,7 @@ const ItemCard = ({ data }: any) => {
   const isInCompare = (data: Item) => {
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) return false;
-    return compareItems.some((item: Item) => (item.id || item._id) === itemId);
+    return compareItems.some((item: any) => (item.id || item._id) === itemId);
   };
 
   const handleCompareItem = (data: Item) => {
@@ -140,13 +194,35 @@ const ItemCard = ({ data }: any) => {
       return;
     }
     
+    // Convert itemId to number for compare operations
+    const numericItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+    
     if (!isInCompare(data)) {
-      dispatch(addCompare(data));
+      // Create compare item with proper structure
+      const compareItem = {
+        id: numericItemId,
+        title: data.name || data.title || '',
+        oldPrice: data.oldPrice || 0,
+        waight: data.waight || '',
+        image: data.images?.[0] || data.image || '',
+        imageTwo: data.imageTwo || '',
+        date: data.date || new Date().toISOString(),
+        status: data.status || 'Available',
+        rating: data.rating || 0,
+        newPrice: data.discountPrice || data.newPrice || 0,
+        location: data.location || '',
+        brand: data.brand || '',
+        sku: data.sku || 0,
+        category: typeof data.category === 'object' ? data.category.name : data.category || '',
+        quantity: data.quantity || 1,
+      };
+      
+      dispatch(addCompare(compareItem));
       showSuccessToast(`Add product in Compare list Successfully!`, {
         icon: false,
       });
     } else {
-      dispatch(removeCompareItem(itemId));
+      dispatch(removeCompareItem(numericItemId));
       showSuccessToast("Remove product on Compare list Successfully!", {
         icon: false,
       });

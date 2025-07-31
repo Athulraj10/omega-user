@@ -82,8 +82,8 @@ const Cart = ({
   };
 
   useEffect(() => {
-    if (cartItems && cartItems.length > 0) {
-      const total = cartItems.reduce((sum, item) => sum + (item.newPrice * item.quantity), 0);
+    if (cartItems && cartItems?.items?.length > 0) {
+      const total = cartItems?.items?.reduce((sum, item) => sum + (item.newPrice * item.quantity), 0);
       setSubTotal(total);
       // Calculate VAT (20%)
       const vatAmount = total * 0.2;
@@ -124,8 +124,6 @@ const Cart = ({
     else return cartItems || [];
   };
 
-  // Check if cart has items safely
-  const hasCartItems = cartItems && cartItems.length > 0;
 
   return (
     <>
@@ -165,7 +163,7 @@ const Cart = ({
                               </tr>
                             </thead>
                             <tbody>
-                              {cartItems && Array.isArray(cartItems) && cartItems.map((item: any, index: number) => {
+                              {cartItems && Array.isArray(cartItems) && cartItems?.items?.map((item: any, index: number) => {
                                 const itemId = item.id || item._id;
                                 if (itemId === undefined || itemId === null) {
                                   console.error("Cannot render cart item: item ID is undefined");

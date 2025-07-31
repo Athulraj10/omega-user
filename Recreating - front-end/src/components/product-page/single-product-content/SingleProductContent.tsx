@@ -11,7 +11,7 @@ import ZoomImage from "@/components/zoom-image/ZoomImage";
 import StarRating from "../../stars/StarRating";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { addItem} from "../../../store/reducers/cartSlice";
+import { useCart, useWishlist } from "@/store/hooks";
 
 const SingleProductContent = ({
   productData,
@@ -28,10 +28,17 @@ const SingleProductContent = ({
   const slider2 = useRef<Slider | null>(initialRef);
   const hasCheckedWishlist = useRef<Set<string>>(new Set());
 
-  // Get cart data from Redux
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  // Use new Redux hooks
+  const { items: cartItems, addToCartData } = useCart();
+  const { 
+    items: wishlistItems, 
+    addToWishlistData, 
+    removeFromWishlistData,
+    addingItem,
+    removingItem
+  } = useWishlist();
   const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
-
+console.log({cartItems})
   // If productData is provided, use it directly, otherwise fetch from API
   const { data, error } = productData
     ? { data: productData, error: null }
@@ -85,7 +92,7 @@ const SingleProductContent = ({
     if (!data) return;
 
     const cartItem = {
-      _id: data._id || Math.floor(Math.random() * 10000),
+      _id: typeof data._id === 'string' ? parseInt(data._id) : (data._id || Math.floor(Math.random() * 10000)),
       title: data.title,
       newPrice: data.newPrice,
       oldPrice: data.oldPrice,
@@ -99,26 +106,13 @@ const SingleProductContent = ({
       brand: data.brand,
       sku: data.sku,
       category: data.category,
-      quantity: quantity
+      quantity,
     };
 
-    const existingItem = cartItems.find(item => item._id === cartItem._id);
-    
-    if (existingItem) {
-      // Update quantity if item already exists
-      dispatch(updateQuantity({ 
-        id: cartItem._id, 
-        quantity: existingItem.quantity + quantity 
-      }));
-    } else {
-      // Add new item
-      dispatch(addItem(cartItem));
-    }
+    addToCartData(cartItem);
   };
 
   const handleWishlistToggle = async () => {
-    if (!data) return;
-
     try {
       const productId = data._id;
       if (productId === undefined || productId === null) {
@@ -126,10 +120,25 @@ const SingleProductContent = ({
         return;
       }
       
-      if (isItemInWishlist(productId.toString())) {
-        await removeFromWishlist(productId.toString());
+      if (isInWishlist(productId.toString())) {
+        removeFromWishlistData(productId.toString());
       } else {
-        await addToWishlist(productId.toString());
+        // Create wishlist item object
+        const wishlistItem = {
+          id: productId.toString(),
+          title: data.name || data.title || '',
+          price: data.discountPrice || data.newPrice || 0,
+          image: data.images?.[0] || data.image || '',
+          slug: data.slug || '',
+          category: data.category?.name || data.category || '',
+          brand: data.brand || '',
+          rating: data.rating || 0,
+          reviews: 0,
+          inStock: true,
+          addedAt: new Date().toISOString(),
+        };
+        
+        addToWishlistData(wishlistItem);
       }
     } catch (error) {
       console.error("Wishlist operation failed:", error);
@@ -137,11 +146,11 @@ const SingleProductContent = ({
   };
 
   const isInWishlist = (productId: string) => {
-    return isItemInWishlist(productId);
+    return wishlistItems.some(item => item.id === productId);
   };
 
   const isInCart = (productId: string) => {
-    return cartItems.some(item => {
+    return cartItems?.items?.some(item => {
       const itemId = item._id;
       return itemId !== undefined && itemId !== null && itemId.toString() === productId;
     });
