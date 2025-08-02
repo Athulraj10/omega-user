@@ -12,9 +12,10 @@ import fetcher from "../fetcher-api/Fetcher";
 import { Col, Form, Row } from "react-bootstrap";
 import Spinner from "../button/Spinner";
 import { useRouter } from "next/navigation";
-import { addOrder, clearCart, setOrders } from "@/store/reducers/cartSlice";
+import { clearCart } from "@/store/reducers/cartSlice";
 import { login } from "@/store/reducers/registrationSlice";
 import { showErrorToast, showSuccessToast } from "../toast-popup/Toastify";
+import location from "@/utility/header/location";
 // import DiscountCoupon from "../discount-coupon/DiscountCoupon";
 
 interface Address {
@@ -52,11 +53,6 @@ interface FormData {
   state: string;
 }
 
-interface Country {
-  id: string;
-  name: any;
-  iso2: string;
-}
 
 interface State {
   id: string;
@@ -111,7 +107,7 @@ const CheckOut = ({
   const [loginVisible, setLoginVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [filteredCountryData, setFilteredCountryData] = useState<Country[]>([]);
+  const [filteredCountryData, setFilteredCountryData] = useState<any[]>([]);
   const [filteredStateData, setFilteredStateData] = useState<State[]>([]);
   const [filteredCityData, setFilteredCityData] = useState<City[]>([]);
   const [loadingStates, setLoadingStates] = useState(false);
@@ -130,10 +126,11 @@ const CheckOut = ({
     state: "",
   });
 
-  const { data: country } = useSWR("/api/country", fetcher, {
-    onSuccess,
-    onError,
-  });
+  // const { data: country } = useSWR("/api/country", fetcher, {
+  //   onSuccess,
+  //   onError,
+  // });
+  const country = location
 
   useEffect(() => {
     const existingAddresses = JSON.parse(
@@ -164,13 +161,14 @@ const CheckOut = ({
 
   useEffect(() => {
     if (country) {
-      setFilteredCountryData(
-        country.map((country: any) => ({
-          id: country.id,
-          countryName: country.name,
-          iso2: country.iso2,
-        }))
-      );
+      // setFilteredCountryData(
+      //   country.map((country: any) => ({
+      //     id: country.id,
+      //     countryName: country.name,
+      //     iso2: country.iso2,
+      //   }))
+      // );
+      setFilteredCountryData(country)
     }
   }, [country]);
 
@@ -431,20 +429,6 @@ const CheckOut = ({
     const { value, options, selectedIndex } = e.target;
     const countryName = options[selectedIndex].text;
     handleInputChange(e, countryName);
-
-    setLoadingStates(true);
-    const response = await fetcher(`/api/state`, {
-      country_code: value,
-    });
-    setLoadingStates(false);
-    setFilteredStateData(
-      response.map((state: any) => ({
-        id: state.id,
-        StateName: state.name,
-        state_code: state.state_code,
-      }))
-    );
-    setFilteredCityData([]);
   };
 
   const handleStateChange = async (e: any) => {
@@ -626,28 +610,8 @@ const CheckOut = ({
                               />
                               <label htmlFor="del1">Rate - $0.00</label>
                             </span>
-                            <span>
-                              <span className="gi-del-opt-head">Flat Rate</span>
-                              <input
-                                type="radio"
-                                id="del2"
-                                name="radio-group"
-                                value="flat"
-                                checked={selectedMethod === "flat"}
-                                onChange={handleDeliveryChange}
-                              />
-                              <label htmlFor="del2">Rate - $5.00</label>
                             </span>
-                          </span>
-                          <span className="gi-del-comment">
-                            <span className="gi-del-opt-head">
-                              Add Comments About Your Order
-                            </span>
-                            <textarea
-                              name="your-comment"
-                              placeholder="Comments"
-                            ></textarea>
-                          </span>
+                            
                         </form>
                       </div>
                     </div>
@@ -680,32 +644,7 @@ const CheckOut = ({
                               <label htmlFor="pay1">Cash On Delivery</label>
                             </span>
                           </span>
-                          <span className="gi-pay-commemt">
-                            <span className="gi-pay-opt-head">
-                              Add Comments About Your Order
-                            </span>
-                            <textarea
-                              name="your-commemt"
-                              placeholder="Comments"
-                            ></textarea>
-                          </span>
-                          <span className="gi-pay-agree">
-                            <input
-                              ref={checkboxRef}
-                              required
-                              checked={isTermsChecked}
-                              onChange={() =>
-                                setIsTermsChecked(!isTermsChecked)
-                              }
-                              type="checkbox"
-                              value=""
-                            />
-                            <a href="#">
-                              I have read and agree to the{" "}
-                              <span>Terms & Conditions.</span>
-                            </a>
-                            <span className="checked"></span>
-                          </span>
+                        
                         </form>
                       </div>
                     </div>
@@ -732,7 +671,7 @@ const CheckOut = ({
                       </div>
                     </div>
                   </div>
-                  {/* <!-- Sidebar Payment Block --> */}
+                  
                 </div>
               </Col>
               <Col lg={8} md={12} className="gi-checkout-leftside m-t-991">
@@ -1027,107 +966,16 @@ const CheckOut = ({
                                           (country: any, index: number) => (
                                             <option
                                               key={index}
-                                              value={country.iso2}
+                                              value={country.name}
                                             >
-                                              {country.countryName}
+                                              {country.name}
                                             </option>
                                           )
                                         )}
                                       </Form.Select>
                                     </span>
                                   </Form.Group>
-                                  <span
-                                    style={{ marginTop: "10px" }}
-                                    className="gi-bill-wrap gi-bill-half"
-                                  >
-                                    <label>Region State</label>
-                                    <Form.Group className="gi-bl-select-inner">
-                                      <Form.Select
-                                        size="sm"
-                                        style={{ width: "1px" }}
-                                        name="state"
-                                        id="gi-select-state"
-                                        className="gi-bill-select"
-                                        defaultValue={formData.state}
-                                        onChange={handleStateChange}
-                                        required
-                                      >
-                                        <option value="" disabled>
-                                          Region/State
-                                        </option>
-                                        {loadingStates ? (
-                                          <option disabled>Loading...</option>
-                                        ) : (
-                                          filteredStateData && Array.isArray(filteredStateData) && filteredStateData.map(
-                                            (state: any, index) => (
-                                              <option
-                                                key={index}
-                                                value={state.state_code}
-                                              >
-                                                {state.StateName}
-                                              </option>
-                                            )
-                                          )
-                                        )}
-                                      </Form.Select>
-                                    </Form.Group>
-                                  </span>
-                                  <span
-                                    style={{ marginTop: "10px" }}
-                                    className="gi-bill-wrap gi-bill-half"
-                                  >
-                                    <label>City *</label>
-                                    <Form.Group className="gi-bl-select-inner">
-                                      <Form.Select
-                                        size="sm"
-                                        style={{ width: "1px" }}
-                                        name="city"
-                                        id="gi-select-city"
-                                        className="gi-bill-select"
-                                        defaultValue={formData.city}
-                                        onChange={handleCityChange}
-                                        required
-                                      >
-                                        <option value="" disabled>
-                                          City
-                                        </option>
-                                        {loadingCities ? (
-                                          <option disabled>Loading...</option>
-                                        ) : (
-                                          filteredCityData && Array.isArray(filteredCityData) && filteredCityData.map(
-                                            (city: any, index) => (
-                                              <option
-                                                key={index}
-                                                value={city.iso2}
-                                              >
-                                                {city.CityName}
-                                              </option>
-                                            )
-                                          )
-                                        )}
-                                      </Form.Select>
-                                    </Form.Group>
-                                  </span>
-                                  <span
-                                    style={{ marginTop: "10px" }}
-                                    className="gi-bill-wrap gi-bill-half"
-                                  >
-                                    <label>Post Code</label>
-                                    <Form.Group>
-                                      <Form.Control
-                                        type="text"
-                                        name="postalCode"
-                                        pattern="^\d{5,6}$"
-                                        placeholder="Post Code"
-                                        value={formData.postalCode}
-                                        onChange={handleInputChange}
-                                        required
-                                      />
-                                      <Form.Control.Feedback type="invalid">
-                                        Please Enter 05-06 digit number.
-                                      </Form.Control.Feedback>
-                                    </Form.Group>
-                                  </span>
+                                
                                   <span className="gi-check-order-btn">
                                     <button type="submit" className="gi-btn-2">
                                       Add
@@ -1427,21 +1275,57 @@ const CheckOut = ({
 
 export default CheckOut;
 
-export const useLoadOrders = () => {
-  const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const loginUser = JSON.parse(localStorage.getItem("login_user") || "{}");
 
-      if (loginUser?.uid) {
-        const storedOrders = JSON.parse(localStorage.getItem("orders") || "{}");
-        const userOrders = storedOrders[loginUser.uid] || [];
+  {/* <span className="gi-pay-commemt">
+                            <span className="gi-pay-opt-head">
+                              Add Comments About Your Order
+                            </span>
+                            <textarea
+                              name="your-commemt"
+                              placeholder="Comments"
+                            ></textarea>
+                          </span> */}
+                          {/* <span className="gi-pay-agree">
+                            <input
+                              ref={checkboxRef}
+                              required
+                              checked={isTermsChecked}
+                              onChange={() =>
+                                setIsTermsChecked(!isTermsChecked)
+                              }
+                              type="checkbox"
+                              value=""
+                            />
+                            <a href="#">
+                              I have read and agree to the{" "}
+                              <span>Terms & Conditions.</span>
+                            </a>
+                            <span className="checked"></span>
+                          </span> */}
 
-        if (userOrders.length > 0) {
-          dispatch(setOrders(userOrders));
-        }
-      }
-    }
-  }, [dispatch]);
-};
+
+
+
+                          
+                            {/* <span>
+                              <span className="gi-del-opt-head">Flat Rate</span>
+                              <input
+                                type="radio"
+                                id="del2"
+                                name="radio-group"
+                                value="flat"
+                                checked={selectedMethod === "flat"}
+                                onChange={handleDeliveryChange}
+                              />
+                              <label htmlFor="del2">Rate - $5.00</label>
+                          </span>
+                          {/* <span className="gi-del-comment">
+                            <span className="gi-del-opt-head">
+                              Add Comments About Your Order
+                            </span>
+                            <textarea
+                              name="your-comment"
+                              placeholder="Comments"
+                            ></textarea>
+                          </span> */}

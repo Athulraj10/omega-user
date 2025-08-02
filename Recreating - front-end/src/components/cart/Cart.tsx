@@ -101,11 +101,11 @@ console.log(cartItems,"cartItems===========")
   const total = subTotal + vat - discountAmount;
 
   const handleRemoveFromCart = (productId: number) => {
-    dispatch(removeItem(productId));
+    // dispatch(removeItem(productId));
   };
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
-    dispatch(updateQuantity({ id: productId, quantity: newQuantity }));
+    // dispatch(updateQuantity({ id: productId, quantity: newQuantity }));
   };
 
   const { data, error } = useSWR("/api/deal", fetcher, { onSuccess, onError });
@@ -162,7 +162,7 @@ console.log(cartItems,"cartItems===========")
                               </tr>
                             </thead>
                             <tbody>
-                              {cartItems && Array.isArray(cartItems) && cartItems?.items?.map((item: any, index: number) => {
+                              {cartItems && Array.isArray(cartItems) && cartItems?.map((item: any, index: number) => {
                                 const itemId = item.id || item._id;
                                 if (itemId === undefined || itemId === null) {
                                   console.error("Cannot render cart item: item ID is undefined");

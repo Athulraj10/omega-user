@@ -31,114 +31,29 @@ interface Item {
   slug?: string;
 }
 
-// interface ProductData {
-//   _id: string;
-//   name: string;
-//   description?: string;
-//   images: string[];
-//   price: number;
-//   discountPrice: number;
-//   sale?: string;
-//   colors?: string[];
-//   sizes?: string[];
-//   rating?: number;
-//   weight?: string;
-//   category?: string;
-// }
 
 const ItemCard = ({ data }: any) => {
-  // Add null check at component level
   if (!data) {
     console.error("ItemCard: data prop is null or undefined");
-    return null; // Don't render anything if data is null
+    return null;
   }
-  
+
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const compareItems = useSelector((state: RootState) => state.compare.compare);
-  
-  // Use new Redux hooks
-  const { 
-    items: cartItems, 
-    addToCartData, 
-    updateCartItemData,
-    setCartItemsData 
-  } = useCart();
-  
-  const { 
-    items: wishlistItems, 
-    addToWishlistData, 
-    removeFromWishlistData,
-    addingItem,
-    removingItem
-  } = useWishlist();
 
-  useEffect(() => {
-    const itemsFromLocalStorage =
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("products") || "[]")
-        : [];
-    if (itemsFromLocalStorage.length) {
-      setCartItemsData(itemsFromLocalStorage);
-    }
-  }, [setCartItemsData]);
+  // Use new Redux hooks
+  const {
+    addToCartData, cartItems, clearCartData, removeFromCartData
+  } = useCart();
+
+  const {
+    addToWishlistData, removeFromWishlistData, setWishlistItemsData, wishlistItems } = useWishlist();
+
 
   const handleCart = (data: Item) => {
-    // Add null check for data
-    if (!data) {
-      console.error("Cannot add to cart: data is null or undefined");
-      return;
-    }
-    
-    const itemId = data.id || data._id;
-    if (itemId === undefined || itemId === null) {
-      console.error("Cannot add to cart: item ID is undefined");
-      return;
-    }
-    
-    // Convert itemId to number for cart operations
-    const numericItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
-    
-    const isItemInCart = cartItems.some((item: any) => (item.id || item._id) === numericItemId);
-
-    if (!isItemInCart) {
-      // Create cart item with proper structure
-      const cartItem = {
-        _id: numericItemId,
-        title: data.name || data.title || '',
-        oldPrice: data.oldPrice || 0,
-        waight: data.waight || '',
-        image: data.images?.[0] || data.image || '',
-        imageTwo: data.imageTwo || '',
-        date: data.date || new Date().toISOString(),
-        status: data.status || 'Available',
-        rating: data.rating || 0,
-        newPrice: data.discountPrice || data.newPrice || 0,
-        location: data.location || '',
-        brand: data.brand || '',
-        sku: data.sku || 0,
-        category: typeof data.category === 'object' ? data.category.name : data.category || '',
-        quantity: 1,
-      };
-      
-      addToCartData(cartItem);
-      showSuccessToast("Add product in Cart Successfully!");
-    } else {
-      const updatedCartItems = cartItems.map((item: any) =>
-        (item.id || item._id) === numericItemId
-          ? {
-            ...item,
-            quantity: item.quantity + 1,
-            price: item.newPrice + (data.newPrice || 0),
-          } // Increment quantity and update price
-          : item
-      );
-      const updatedItem = updatedCartItems.find((item: any) => (item.id || item._id) === numericItemId);
-      if (updatedItem) {
-        updateCartItemData(numericItemId, updatedItem.quantity);
-      }
-      showSuccessToast("Add product in Cart Successfully!");
-    }
+   
+    console.log(data);
   };
 
   const isInWishlist = (data: Item) => {
@@ -156,14 +71,14 @@ const ItemCard = ({ data }: any) => {
         console.error("Cannot handle wishlist: data is null or undefined");
         return;
       }
-      
+
       if (!isInWishlist(data)) {
         const itemId = data.id || data._id;
         if (itemId === undefined || itemId === null) {
           console.error("Cannot add to wishlist: item ID is undefined");
           return;
         }
-        
+
         // Create wishlist item object
         const wishlistItem = {
           id: itemId.toString(),
@@ -178,7 +93,7 @@ const ItemCard = ({ data }: any) => {
           inStock: true,
           addedAt: new Date().toISOString(),
         };
-        
+
         addToWishlistData(wishlistItem);
         showSuccessToast("Add product in Wishlist Successfully!", {
           icon: false,
@@ -212,16 +127,16 @@ const ItemCard = ({ data }: any) => {
       console.error("Cannot handle compare: data is null or undefined");
       return;
     }
-    
+
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) {
       console.error("Cannot handle compare: item ID is undefined");
       return;
     }
-    
+
     // Convert itemId to number for compare operations
     const numericItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
-    
+
     if (!isInCompare(data)) {
       // Create compare item with proper structure
       const compareItem = {
@@ -241,7 +156,7 @@ const ItemCard = ({ data }: any) => {
         category: typeof data.category === 'object' ? data.category.name : data.category || '',
         quantity: data.quantity || 1,
       };
-      
+
       dispatch(addCompare(compareItem));
       showSuccessToast(`Add product in Compare list Successfully!`, {
         icon: false,
@@ -291,7 +206,7 @@ const ItemCard = ({ data }: any) => {
             <div className="gi-pro-actions">
               <button
                 onClick={() => handleWishlist(data)}
-                disabled={addingItem || removingItem}
+                disabled={false}
                 className={`gi-btn-group wishlist ${isInWishlist(data) ? "active" : ""}`}
                 title="Wishlist"
               >
