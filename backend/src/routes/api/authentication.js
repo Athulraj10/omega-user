@@ -24,22 +24,6 @@ router.put('/profile', (req, res) => {
     res.send('Update user profile');
 });
 
-router.get('/addresses', (req, res) => {
-    res.send('Get user addresses');
-});
-
-router.post('/addresses', (req, res) => {
-    res.send('Add new address');
-});
-
-router.put('/addresses/:id', (req, res) => {
-    res.send(`Update address ${req.params.id}`);
-});
-
-router.delete('/addresses/:id', (req, res) => {
-    res.send(`Delete address ${req.params.id}`);
-});
-
 
 
 module.exports = router;

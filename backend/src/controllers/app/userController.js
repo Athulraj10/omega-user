@@ -88,18 +88,18 @@ module.exports = {
             });
 
             const existingDefault = await Address.findOne({
-              userId: user._id,
+              user: user._id,
               isDefault: true,
             });
 
             console.log(existingDefault, "existingDefault")
 
-            const isFirstAddress = !(await Address.exists({ userId: user._id }));
+            const isFirstAddress = !(await Address.exists({ user: user._id }));
             console.log(isFirstAddress, "isFirstAddress")
 
             console.log("!existingDefault || isFirstAddress00,", !existingDefault || isFirstAddress)
             const address = await Address.create({
-              userId: user._id,
+              user: user._id,
               addressLine1: requestParams.address,
               phone: requestParams.phone,
               isDefault: !existingDefault || isFirstAddress
@@ -372,7 +372,7 @@ module.exports = {
 
       const [userData, address, wallet] = await Promise.all([
         User.findById(userId, { password: 0, password_text: 0 }),
-        Address.findOne({ userId }),
+        Address.findOne({ user: userId }),
         UserWallet.findOne({ userId }).populate('currencyId'),
       ]);
 
