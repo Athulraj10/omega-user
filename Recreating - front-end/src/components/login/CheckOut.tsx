@@ -472,8 +472,6 @@ const CheckOut = ({
     handleInputChange(e);
   };
 
-  console.log("cartItems", cartItems)
-
   return (
     <>
       <Breadcrumb title={"Checkout"} />

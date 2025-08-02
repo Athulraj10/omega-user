@@ -23,14 +23,6 @@ function HeaderTwo({ cartItems, wishlistItems, cartCount, wishlistCount, isAuthe
   const { searchTerm } = useSelector((state: RootState) => state.filter);
   const [searchInput, setSearchInput] = useState(searchTerm || "");
 
-  // console.log({ isAuthenticated })
-  // console.log(user, "user000")
-
-  // useEffect(() => {
-  //   const userdata = localStorage.getItem("login_user") ?? "";
-  //   const user = userdata !== "" ? JSON.parse(userdata) : null;
-  //   dispatch(setUserData({ isAuthenticated: userdata !== "", user }));
-  // }, [dispatch]);
 
   const handleSearch = (event: any) => {
     setSearchInput(event.target.value);

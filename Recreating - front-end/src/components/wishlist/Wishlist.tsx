@@ -1,14 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Swiper, SwiperSlide } from "swiper/react"
-import ItemCard from "../product-item/ItemCard"
+import { Swiper } from "swiper/react"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../../store"
-import { addItem } from "../../store/reducers/cartSlice"
 import { Fade } from "react-awesome-reveal"
 import { Col, Row } from "react-bootstrap"
-import useSWR from "swr"
-import fetcher from "../fetcher-api/Fetcher"
 import Spinner from "../button/Spinner"
 
 interface WishlistItem {
@@ -53,23 +49,16 @@ const Wishlist = ({
 
   // Get cart items from Redux
   const cartItems = useSelector((state: RootState) => state.cart.items);
+  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString("en-GB"));
   }, []);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Wishlist component debug:");
-    console.log("wishlistLoading:", wishlistLoading);
-    console.log("wishlistItems:", wishlistItems);
-    console.log("totalItems:", totalItems);
-    console.log("wishlistError:", wishlistError);
-  }, [wishlistLoading, wishlistItems, totalItems, wishlistError]);
 
   const handleRemoveFromwishlist = async (id: string) => {
     try {
-      await removeFromWishlist(id);
+
     } catch (error) {
       console.error("Failed to remove from wishlist:", error);
     }
@@ -95,13 +84,13 @@ const Wishlist = ({
       quantity: 1
     };
 
-    const isItemInCart = cartItems.some((item: CartItem) => item._id === cartItem._id);
+    const isItemInCart = cartItems.some((item: any) => item._id === cartItem._id);
 
     if (!isItemInCart) {
-      dispatch(addItem(cartItem));
+      // dispatch(addItem(cartItem));
     } else {
       // Update quantity if item already exists
-      const updatedCartItems = cartItems.map((item: CartItem) => {
+      const updatedCartItems = cartItems.map((item: any) => {
         const itemId = item._id;
         const cartItemId = cartItem._id;
         if (itemId !== undefined && itemId !== null && cartItemId !== undefined && cartItemId !== null && itemId === cartItemId) {
@@ -109,12 +98,14 @@ const Wishlist = ({
         }
         return item;
       });
-      dispatch(addItem(cartItem));
+      // dispatch(addItem(cartItem));
     }
   };
 
   // Show loading state
-  if (wishlistLoading) {
+  if (
+    // wishlistLoading
+      false) {
     return (
       <div className="container text-center py-5">
         <Spinner />

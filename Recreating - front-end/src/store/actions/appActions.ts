@@ -9,8 +9,9 @@ export const appActions = () => async (dispatch: AppDispatch) => {
             fetchWithoutAuth('/api/deal'),
             fetchWithoutAuth('/api/grocery-category'),
         ]);
+        
 
-        console.log({ banner, categories, deal, groceryCategory })
+        
 
         // if (banner && banner?.data) {
         //     dispatch(setbannerItems(banner.data));

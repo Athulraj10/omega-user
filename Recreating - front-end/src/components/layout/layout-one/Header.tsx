@@ -12,10 +12,8 @@ import { useAppDispatch } from "@/store/hooks";
 
 function Header() {
   const dispatch = useAppDispatch();
-  const wishlist  = useSelector((state: RootState) => state.wishlist);
+  const wishlist  = useSelector((state: RootState) => state.wishlist.items);
   const cartItems = useSelector((state: RootState) => state.cart.items);
-
-  // Use the new Redux-based wishlist hook
 
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -36,19 +34,20 @@ function Header() {
   return (
     <>
       <header className="gi-header" key={forceUpdate}>
+        {/* <FeatureTools /> */}
         <HeaderOne
           key={`header-one-${forceUpdate}`}
           wishlistItems={wishlist}
           cartItems={cartItems}
           cartCount={cartItems.length}
-          wishlistCount={0}
+          wishlistCount={wishlist.length}
         />
         <HeaderTwo
           key={`header-two-${forceUpdate}`}
           cartItems={cartItems}
           wishlistItems={wishlist}
-          cartCount={0}
-          wishlistCount={0}
+          cartCount={cartItems.length}
+          wishlistCount={wishlist.length}
           isAuthenticated={isAuthenticated}
         />
       </header>

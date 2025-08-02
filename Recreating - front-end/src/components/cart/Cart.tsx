@@ -11,7 +11,7 @@ import QuantitySelector from "../quantity-selector/QuantitySelector";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { removeItem, updateQuantity } from "../../store/reducers/cartSlice";
+import { useCart } from "@/store/hooks";
 
 interface Country {
   id: string;
@@ -31,9 +31,8 @@ const Cart = ({
   onError = () => {},
 }) => {
   const dispatch = useDispatch();
-  
-  // Get cart data from Redux
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const { cartItems, removeFromCartData } = useCart();
+console.log(cartItems,"cartItems===========")
   const isAuthenticated = useSelector((state: RootState) => state.registration.isAuthenticated);
 
   const [filteredCountryData, setFilteredCountryData] = useState<Country[]>([]);

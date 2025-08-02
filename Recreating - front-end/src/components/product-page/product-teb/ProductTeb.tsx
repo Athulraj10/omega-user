@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Tab, TabList, Tabs } from "react-tabs";
+import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { Fade } from "react-awesome-reveal";
 import RatingComponent from "@/components/stars/RatingCompoents";
 import { useSelector } from "react-redux";
@@ -29,7 +29,6 @@ const getRegistrationData = () => {
 };
 
 const ProductTeb = ({ productData }: { productData?: any }) => {
-  console.log("productData", productData)
   const login = useSelector(
     (state: RootState) => state.registration.isAuthenticated
   );
@@ -132,68 +131,75 @@ const ProductTeb = ({ productData }: { productData?: any }) => {
 
         <div className="tab-content gi-single-pro-tab-content">
           {/* DETAILS TAB */}
-          <Fade
-            duration={1000}
-            className={`tab-pane fade ${
-              selectedIndex === 0 ? "show active" : ""
-            }`}
-          >
-            <div className="gi-single-pro-tab-desc">
-              <p>{productData?.description || "No description available."}</p>
-            </div>
-          </Fade>
+          <TabPanel>
+            <Fade
+              duration={1000}
+              className={`tab-pane fade ${
+                selectedIndex === 0 ? "show active" : ""
+              }`}
+            >
+              <div className="gi-single-pro-tab-desc">
+                <p>{productData?.description || "No description available."}</p>
+              </div>
+            </Fade>
+          </TabPanel>
 
           {/* SPECIFICATIONS TAB */}
-          <Fade
-            duration={1000}
-            className={`tab-pane fade ${
-              selectedIndex === 1 ? "show active" : ""
-            }`}
-          >
-            <div className="gi-single-pro-tab-moreinfo">
-              {productData?.specifications ? (
-                <ul>
-                  {Object.entries(productData.specifications).map(
-                    ([key, value]: [string, any]) => (
-                      <li key={key}>
-                        <span>{key}</span> {value}
-                      </li>
-                    )
-                  )}
-                </ul>
-              ) : (
-                <p>No specifications available.</p>
-              )}
-            </div>
-          </Fade>
+          <TabPanel>
+            <Fade
+              duration={1000}
+              className={`tab-pane fade ${
+                selectedIndex === 1 ? "show active" : ""
+              }`}
+            >
+              <div className="gi-single-pro-tab-moreinfo">
+                {productData?.specifications ? (
+                  <ul>
+                    {Object.entries(productData.specifications).map(
+                      ([key, value]: [string, any]) => (
+                        <li key={key}>
+                          <span>{key}</span> {value}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : (
+                  <p>No specifications available.</p>
+                )}
+              </div>
+            </Fade>
+          </TabPanel>
 
           {/* VENDOR TAB */}
-          <Fade
-            duration={1000}
-            className={`tab-pane fade ${
-              selectedIndex === 2 ? "show active" : ""
-            }`}
-          >
-            <div className="gi-single-pro-tab-moreinfo">
-              {productData?.seller ? (
-                <>
-                  <h5>Vendor Name: {productData?.seller?.userName}</h5>
-                  <p>{productData?.seller?.companyName}</p>
-                  <p>{productData?.seller?.address}</p>
-                </>
-              ) : (
-                <p>No vendor information available.</p>
-              )}
-            </div>
-          </Fade>
+          <TabPanel>
+            <Fade
+              duration={1000}
+              className={`tab-pane fade ${
+                selectedIndex === 2 ? "show active" : ""
+              }`}
+            >
+              <div className="gi-single-pro-tab-moreinfo">
+                {productData?.seller ? (
+                  <>
+                    <h5>Vendor Name: {productData?.seller?.userName}</h5>
+                    <p>{productData?.seller?.companyName}</p>
+                    <p>{productData?.seller?.address}</p>
+                  </>
+                ) : (
+                  <p>No vendor information available.</p>
+                )}
+              </div>
+            </Fade>
+          </TabPanel>
 
           {/* REVIEWS TAB */}
-          <Fade
-            duration={1000}
-            className={`tab-pane fade ${
-              selectedIndex === 3 ? "show active" : ""
-            }`}
-          >
+          <TabPanel>
+            <Fade
+              duration={1000}
+              className={`tab-pane fade ${
+                selectedIndex === 3 ? "show active" : ""
+              }`}
+            >
             {!login ? (
               <div className="container">
                 <p>
@@ -277,6 +283,7 @@ const ProductTeb = ({ productData }: { productData?: any }) => {
               </div>
             )}
           </Fade>
+          </TabPanel>
         </div>
       </div>
     </Tabs>

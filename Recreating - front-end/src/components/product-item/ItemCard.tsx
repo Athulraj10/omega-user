@@ -47,6 +47,12 @@ interface Item {
 // }
 
 const ItemCard = ({ data }: any) => {
+  // Add null check at component level
+  if (!data) {
+    console.error("ItemCard: data prop is null or undefined");
+    return null; // Don't render anything if data is null
+  }
+  
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const compareItems = useSelector((state: RootState) => state.compare.compare);
@@ -78,6 +84,12 @@ const ItemCard = ({ data }: any) => {
   }, [setCartItemsData]);
 
   const handleCart = (data: Item) => {
+    // Add null check for data
+    if (!data) {
+      console.error("Cannot add to cart: data is null or undefined");
+      return;
+    }
+    
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) {
       console.error("Cannot add to cart: item ID is undefined");
@@ -139,6 +151,12 @@ const ItemCard = ({ data }: any) => {
 
   const handleWishlist = async (data: Item) => {
     try {
+      // Add null check for data
+      if (!data) {
+        console.error("Cannot handle wishlist: data is null or undefined");
+        return;
+      }
+      
       if (!isInWishlist(data)) {
         const itemId = data.id || data._id;
         if (itemId === undefined || itemId === null) {
@@ -182,12 +200,19 @@ const ItemCard = ({ data }: any) => {
   };
 
   const isInCompare = (data: Item) => {
+    if (!data) return false;
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) return false;
     return compareItems.some((item: any) => (item.id || item._id) === itemId);
   };
 
   const handleCompareItem = (data: Item) => {
+    // Add null check for data
+    if (!data) {
+      console.error("Cannot handle compare: data is null or undefined");
+      return;
+    }
+    
     const itemId = data.id || data._id;
     if (itemId === undefined || itemId === null) {
       console.error("Cannot handle compare: item ID is undefined");
