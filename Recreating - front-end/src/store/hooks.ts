@@ -23,6 +23,16 @@ import {
   removeFromWishlist,
   selectWishlistItems,
 } from "./reducers/wishlistSlice";
+// Address
+import {
+  setAddresses,
+  addAddress,
+  updateAddress,
+  removeAddress,
+  setDefaultAddress,
+  clearAddresses,
+  selectAddresses,
+} from "./reducers/addressSlice";
 
 // Typed hooks
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -142,5 +152,46 @@ export const useWishlist = () => {
     setWishlistItemsData,
     addToWishlistData,
     removeFromWishlistData,
+  };
+};
+
+// ───────────────────────────────────────────────────────────
+// Address Hook
+export const useAddress = () => {
+  const dispatch = useAppDispatch();
+  const addresses = useAppSelector(selectAddresses);
+
+  const setAddressesData = (addressesData: any[]) => {
+    dispatch(setAddresses(addressesData));
+  };
+
+  const addAddressData = (address: any) => {
+    dispatch(addAddress(address));
+  };
+
+  const updateAddressData = (address: any) => {
+    dispatch(updateAddress(address));
+  };
+
+  const removeAddressData = (addressId: string) => {
+    dispatch(removeAddress(addressId));
+  };
+
+  const setDefaultAddressData = (addressId: string) => {
+    dispatch(setDefaultAddress(addressId));
+  };
+
+  const clearAddressesData = () => {
+    dispatch(clearAddresses());
+  };
+
+  return {
+    addresses,
+    setAddressesData,
+    addAddressData,
+    updateAddressData,
+    removeAddressData,
+    setDefaultAddressData,
+    clearAddressesData,
   };
 };
