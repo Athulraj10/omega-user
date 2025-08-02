@@ -34,6 +34,31 @@ module.exports = {
     return callback(true);
   },
 
+  completeCheckoutValidation: (req, res, callback) => {
+    const schema = Joi.object({
+      shippingAddress: Joi.object({
+        label: Joi.string().trim().valid("Home", "Work", "Other").default("Home"),
+        addressLine1: Joi.string().trim().max(200).required(),
+        addressLine2: Joi.string().trim().max(200).optional(),
+        city: Joi.string().trim().max(100).required(),
+        state: Joi.string().trim().max(100).optional(),
+        postalCode: Joi.string().trim().max(20).required(),
+        country: Joi.string().trim().max(100).required(),
+        phone: Joi.string().trim().max(20).optional(),
+      }).required(),
+      paymentMethod: Joi.string().trim().valid("cod", "card", "paypal", "stripe").default("cod"),
+      couponCode: Joi.string().trim().optional(),
+    });
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return Response.validationErrorResponseData(
+        res,
+        res.__(Helper.validationMessageKey("completeCheckoutValidation", error))
+      );
+    }
+    return callback(true);
+  },
+
   getOrderByIdValidation: (req, res, callback) => {
     const schema = Joi.object({
       id: Joi.string().trim().required()

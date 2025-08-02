@@ -26,7 +26,10 @@ const OrderSchema = new mongoose.Schema({
         index: true,
     },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+    paymentMethod: { type: String, enum: ['cod', 'card', 'paypal', 'stripe'], default: 'cod' },
     totalAmount: { type: Number, required: true },
+    discountAmount: { type: Number, default: 0 },
+    originalAmount: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 }, {
