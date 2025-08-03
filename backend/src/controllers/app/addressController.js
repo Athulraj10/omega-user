@@ -11,9 +11,9 @@ const addressController = {
    */
   getUserAddresses: async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.authUserId;
       
-      const addresses = await Address.find({ user: userId }).sort({ isDefault: -1, createdAt: -1 });
+      const addresses = await Address.find({ userId }).sort({ isDefault: -1, createdAt: -1 });
       
       const sanitizedAddresses = addresses.map(address => sanitizeAddress(address.toObject()));
       
@@ -40,11 +40,13 @@ const addressController = {
    */
   createAddress: async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.authUserId;
+      console.log({userId});
       const requestParams = req.body;
+      console.log({requestParams});
 
       // Check if this will be the first address (make it default)
-      const existingAddresses = await Address.find({ user: userId });
+      const existingAddresses = await Address.find({ userId });
       const isFirstAddress = existingAddresses.length === 0;
 
       // If setting as default, unset other default addresses
@@ -56,22 +58,21 @@ const addressController = {
       }
 
       const addressData = {
-        user: userId,
+        userId,
+        isDefault: requestParams.isDefault || isFirstAddress,
         label: requestParams.label || 'Home',
-        addressLine1: requestParams.addressLine1,
-        addressLine2: requestParams.addressLine2,
-        city: requestParams.city,
-        state: requestParams.state,
-        postalCode: requestParams.postalCode,
+        address: requestParams.address,
         country: requestParams.country,
-        phone: requestParams.phone,
-        isDefault: requestParams.isDefault || isFirstAddress
+        countryName: requestParams.countryName,
+        firstName: requestParams.firstName,
+        lastName: requestParams.lastName,
+        mobileNo: requestParams.mobileNo,
       };
-
+      console.log({addressData});
       const address = await Address.create(addressData);
       
       const sanitizedAddress = sanitizeAddress(address.toObject());
-      
+      console.log({sanitizedAddress});
       return Response.successResponseData(
         res,
         sanitizedAddress,
@@ -95,12 +96,12 @@ const addressController = {
    */
   updateAddress: async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.authUserId;
       const addressId = req.params.id;
       const requestParams = req.body;
 
       // Check if address exists and belongs to user
-      const existingAddress = await Address.findOne({ _id: addressId, user: userId });
+      const existingAddress = await Address.findOne({ _id: addressId, userId });
       if (!existingAddress) {
         return Response.errorResponseData(
           res,
@@ -118,15 +119,13 @@ const addressController = {
       }
 
       const updateData = {};
-      if (requestParams.label !== undefined) updateData.label = requestParams.label;
-      if (requestParams.addressLine1 !== undefined) updateData.addressLine1 = requestParams.addressLine1;
-      if (requestParams.addressLine2 !== undefined) updateData.addressLine2 = requestParams.addressLine2;
-      if (requestParams.city !== undefined) updateData.city = requestParams.city;
-      if (requestParams.state !== undefined) updateData.state = requestParams.state;
-      if (requestParams.postalCode !== undefined) updateData.postalCode = requestParams.postalCode;
-      if (requestParams.country !== undefined) updateData.country = requestParams.country;
-      if (requestParams.phone !== undefined) updateData.phone = requestParams.phone;
       if (requestParams.isDefault !== undefined) updateData.isDefault = requestParams.isDefault;
+      if (requestParams.label !== undefined) updateData.label = requestParams.label;
+      if (requestParams.address !== undefined) updateData.address = requestParams.address;
+      if (requestParams.country !== undefined) updateData.country = requestParams.country;
+      if (requestParams.countryName !== undefined) updateData.countryName = requestParams.countryName;
+      if (requestParams.firstName !== undefined) updateData.firstName = requestParams.firstName;
+      if (requestParams.lastName !== undefined) updateData.lastName = requestParams.lastName;
 
       const updatedAddress = await Address.findByIdAndUpdate(
         addressId,
@@ -159,11 +158,11 @@ const addressController = {
    */
   deleteAddress: async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.authUserId;
       const addressId = req.params.id;
 
       // Check if address exists and belongs to user
-      const existingAddress = await Address.findOne({ _id: addressId, user: userId });
+      const existingAddress = await Address.findOne({ _id: addressId, userId });
       if (!existingAddress) {
         return Response.errorResponseData(
           res,
@@ -174,7 +173,7 @@ const addressController = {
 
       // If deleting default address, set another address as default
       if (existingAddress.isDefault) {
-        const otherAddress = await Address.findOne({ user: userId, _id: { $ne: addressId } });
+        const otherAddress = await Address.findOne({ userId, _id: { $ne: addressId } });
         if (otherAddress) {
           await Address.findByIdAndUpdate(otherAddress._id, { isDefault: true });
         }
@@ -205,11 +204,11 @@ const addressController = {
    */
   setDefaultAddress: async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.authUserId;
       const addressId = req.params.id;
 
       // Check if address exists and belongs to user
-      const existingAddress = await Address.findOne({ _id: addressId, user: userId });
+      const existingAddress = await Address.findOne({ _id: addressId, userId });
       if (!existingAddress) {
         return Response.errorResponseData(
           res,
@@ -220,7 +219,7 @@ const addressController = {
 
       // Unset all other default addresses
       await Address.updateMany(
-        { user: userId, _id: { $ne: addressId } },
+        { userId, _id: { $ne: addressId } },
         { isDefault: false }
       );
 

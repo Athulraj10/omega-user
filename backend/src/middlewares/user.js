@@ -6,7 +6,7 @@ const { INACTIVE, ACTIVE, BLOCK, ROLES, INTERNAL_SERVER } = require("../services
 module.exports = {
   userTokenAuth: async (req, res, next) => {
     try {
-      // console.log("Headers received:", req);
+      // console.log("Headers received:", req.headers);
 
       const token = req.headers.authorization;
       // console.log({ token })

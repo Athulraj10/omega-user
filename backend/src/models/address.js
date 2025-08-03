@@ -1,54 +1,44 @@
 const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema({
-    user: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
     label: {
         type: String,
-        maxLength: 50,
-        enum: ["Home", "Work", "Other"],
         default: "Home"
     },
-    addressLine1: {
+    address: {
         type: String,
-        maxLength: 200,
-        required: true
-    },
-    addressLine2: {
-        type: String,
-        maxLength: 200
-    },
-    city: {
-        type: String,
-        maxLength: 100,
-        required: true
-    },
-    state: {
-        type: String,
-        maxLength: 100,
-        required: true
-    },
-    postalCode: {
-        type: String,
-        maxLength: 20,
         required: true
     },
     country: {
         type: String,
-        maxLength: 100,
         required: true
     },
-    phone: {
+    countryName: {
         type: String,
-        maxLength: 20
+        required: true
     },
-    isDefault: {
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName: {
+        type: String,
+        required: true
+    },
+    mobileNo: {
+        type: String,
+        required: true
+    },
+
+       isDefault: {
         type: Boolean,
         default: false
-    }
+    },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },

@@ -119,34 +119,33 @@ module.exports = {
     } = user;
     return safeUser;
   },
-  sanitizeAddress: (address) => {
-    if (!address) return null;
-
+  sanitizeAddress: (data) => {
+    if (!data) return null;
     const {
       _id,
       userId,
       label,
-      addressLine1,
-      city,
-      state,
-      postalCode,
+      address,
       country,
-      phone,
-      isDefault
-    } = address;
+      countryName,
+      firstName,
+      lastName,
+      isDefault,
+      mobileNo,
+    } = data;
     return {
       id: _id,
       userId,
       label,
-      addressLine1,
-      city,
-      state,
-      postalCode,
+      address,
       country,
-      phone,
-      isDefault
+      countryName,
+      firstName,
+      lastName,
+      isDefault,
+      mobileNo,
     };
-  },
+      },
   sanitizeWallet: (wallet) => {
     if (!wallet) return null;
 

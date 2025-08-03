@@ -8,7 +8,7 @@ router.get("/", userTokenAuth, addressController.getUserAddresses);
 
 // Create a new address
 router.post("/", userTokenAuth, (req, res) => {
-  AddressValidation.createAddressValidation(req, res, async (validate) => {
+ AddressValidation.createAddressValidation(req, res, async (validate) => {
     if (validate) {
       await addressController.createAddress(req, res);
     }

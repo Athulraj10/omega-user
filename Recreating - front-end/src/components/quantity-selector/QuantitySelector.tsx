@@ -1,12 +1,12 @@
 import { useDispatch } from "react-redux";
-import { updateQuantity } from "../../store/reducers/cartSlice";
+import { updateCartItem } from "../../store/reducers/cartSlice";
 
 const QuantitySelector = ({
   id,
   quantity,
   setQuantity,
 }: {
-  id: number;
+  id: string;
   quantity: number;
   setQuantity?: any;
 }) => {
@@ -24,7 +24,7 @@ const QuantitySelector = ({
     if (undefined !== setQuantity) {
       setQuantity(newQuantity);
     } else {
-      dispatch(updateQuantity({ id, quantity: newQuantity }));
+      dispatch(updateCartItem({ id, quantity: newQuantity }));
     }
   };
 

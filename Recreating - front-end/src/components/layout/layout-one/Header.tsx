@@ -17,18 +17,11 @@ function Header() {
 
   const [forceUpdate, setForceUpdate] = useState(0);
 
-  // Get cart items from Redux
-
   const isAuthenticated = useSelector(
     (state: RootState) => state.registration.isAuthenticated
   );
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      const token = JSON.parse(localStorage.getItem('token') || '');
-      dispatch(fetchUserData(token));
-    }
-  }, [isAuthenticated, dispatch]);
+
 
 
   return (
