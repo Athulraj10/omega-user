@@ -17,6 +17,8 @@ import { login } from "@/store/reducers/registrationSlice";
 import { showErrorToast, showSuccessToast } from "../toast-popup/Toastify";
 import location from "@/utility/header/location";
 import { useAddress } from "@/store/hooks";
+import OrderApiService from "../../services/orderApi";
+import { CreateOrderRequest } from "../../types/order";
 
 // import DiscountCoupon from "../discount-coupon/DiscountCoupon";
 import { Address } from "../../types/address";
@@ -280,7 +282,7 @@ const CheckOut = ({
   };
 
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!isLogin) {
       showErrorToast("Please login to place an order.");
       return;
@@ -291,31 +293,63 @@ const CheckOut = ({
       return;
     }
 
-    const newOrder = {
-      orderId: 254165164984,
-      date: new Date().getTime(),
-      shippingMethod: selectedMethod,
-      totalItems: cartItems.length,
-      totalPrice: total,
-      status: "Pending",
-      products: cartItems,
-      address: selectedAddress,
-    };
+    try {
+      // Prepare order items from cart
+      const orderItems = cartItems.map((item: any) => ({
+        product: item._id || item.id,
+        title: item.title,
+        image: item.image,
+        price: item.newPrice,
+        quantity: item.quantity,
+        totalPrice: item.newPrice * item.quantity,
+      }));
 
-    const orderExists = orders.some(
-      (order: any) => order.id === newOrder.orderId
-    );
-
-    if (!orderExists) {
-      // dispatch(addOrder(newOrder));
-    } else {
-      console.log(
-        `Order with ID ${newOrder.orderId} already exists and won't be added again.`
-      );
+      // Prepare order data
+      const orderData: CreateOrderRequest = {
+        items: orderItems,
+        shippingAddress: {
+          label: selectedAddress.label || "Home",
+          addressLine1: selectedAddress.addressLine1,
+          city: selectedAddress.city || "",
+          state: selectedAddress.state || "",
+          postalCode: selectedAddress.postalCode || "",
+          country: selectedAddress.country,
+          phone: selectedAddress.phone || "",
+        },
+        billingAddress: {
+          label: selectedAddress.label || "Home",
+          addressLine1: selectedAddress.addressLine1,
+          city: selectedAddress.city || "",
+          state: selectedAddress.state || "",
+          postalCode: selectedAddress.postalCode || "",
+          country: selectedAddress.country,
+          phone: selectedAddress.phone || "",
+        },
+        paymentMethod: "cash_on_delivery",
+        shippingMethod: selectedMethod === "free" ? "free" : "standard",
+        subtotal: subTotal,
+        tax: vat,
+        discount: discountAmount,
+        total: total,
+        notes: "",
+      };
+console.log({"orderData----------------":orderData})
+return
+      // Create order via API
+      const newOrder = await OrderApiService.createOrder(orderData);
+      
+      showSuccessToast(`Order placed successfully! Order #${newOrder.orderNumber}`);
+      
+      // Clear cart after successful order
+      dispatch(clearCart());
+      
+      // Redirect to orders page
+      router.push("/orders");
+      
+    } catch (error: any) {
+      console.error("Error placing order:", error);
+      showErrorToast(error.message || "Failed to place order. Please try again.");
     }
-    dispatch(clearCart());
-
-    router.push("/orders");
   };
 
   const handleRemoveAddress = async (addressId: string) => {
