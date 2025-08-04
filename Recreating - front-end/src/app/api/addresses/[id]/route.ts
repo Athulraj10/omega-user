@@ -4,16 +4,17 @@ import { NextRequest, NextResponse } from "next/server";
 // PUT /api/addresses/[id] - Update an address
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("Received request to update address ID:", params.id);
+    const { id } = await params;
+    console.log("Received request to update address ID:", id);
 
     const body = await request.json();
 
     const authHeader = request.headers.get("Authorization");
     console.log("Getting cart data");
-    const { data, status } = await backend.put(`/api/v1/addresses/${params.id}`, body, {
+    const { data, status } = await backend.put(`/api/v1/addresses/${id}`, body, {
       headers: {
         Authorization: authHeader || "",
       },
@@ -35,14 +36,15 @@ export async function PUT(
 // DELETE /api/addresses/[id] - Delete an address
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("Received request to delete address ID:", params.id);
+    const { id } = await params;
+    console.log("Received request to delete address ID:", id);
 
     const authHeader = request.headers.get("Authorization");
     console.log("Getting cart data");
-    const { data, status } =  await backend.delete(`/api/v1/addresses/${params.id}`, {
+    const { data, status } =  await backend.delete(`/api/v1/addresses/${id}`, {
       headers: {
         Authorization: authHeader || "",
       },

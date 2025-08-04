@@ -4,13 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 // PATCH /api/addresses/[id]/default - Set address as default
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("Received request to set address as default ID:", params.id);
+    const { id } = await params;
+    console.log("Received request to set address as default ID:", id);
+
+    console.log("Received request for user addresses");
     const authHeader = request.headers.get("Authorization");
-  
-    const { data, status } = await backend.patch(`/api/v1/addresses/${params.id}/default`,{
+    console.log("Getting cart data",authHeader);
+    const { data, status } = await backend.patch(`/api/v1/addresses/${id}/default`, {
       headers: {
         Authorization: authHeader || "",
       },

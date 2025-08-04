@@ -345,6 +345,7 @@ const CheckOut = ({
   const handleSetDefaultAddress = async (addressId: string) => {
     try {
       const token = JSON.parse(localStorage.getItem('token') || '');
+      console.log({"token----------------":token})
       const response = await fetch(`/api/addresses/${addressId}/default`, {
         method: "PATCH",
         headers: {
