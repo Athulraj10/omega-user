@@ -893,6 +893,21 @@ const CheckOut = ({
                                                           }}
                                                         >
                                                           {address.label}
+                                                          {address.isDefault && (
+                                                            <span
+                                                              style={{
+                                                                color: "#5caf90",
+                                                                fontWeight: "bold",
+                                                                marginLeft: "8px",
+                                                                fontSize: "12px",
+                                                                backgroundColor: "#f0f8f0",
+                                                                padding: "2px 6px",
+                                                                borderRadius: "4px"
+                                                              }}
+                                                            >
+                                                              (Default)
+                                                            </span>
+                                                          )}
                                                         </span>
                                                       </li>
                                                       <li>
@@ -941,16 +956,18 @@ const CheckOut = ({
                                                 </button>
                                                 <button
                                                   onClick={() => handleSetDefaultAddress(address.id)}
+                                                  disabled={address.isDefault}
                                                   style={{
                                                     fontSize: "12px",
-                                                    color: "#5caf90",
+                                                    color: address.isDefault ? "#ccc" : "#5caf90",
                                                     background: "none",
                                                     border: "none",
-                                                    cursor: "pointer",
-                                                    marginRight: "10px"
+                                                    cursor: address.isDefault ? "not-allowed" : "pointer",
+                                                    marginRight: "10px",
+                                                    opacity: address.isDefault ? 0.6 : 1
                                                   }}
                                                 >
-                                                  Set Default
+                                                  {address.isDefault ? "Default" : "Set Default"}
                                                 </button>
                                                 <a
                                                   style={{
