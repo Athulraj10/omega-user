@@ -9,7 +9,7 @@ module.exports = {
       // console.log("Headers received:", req.headers);
 
       const token = req.headers.authorization;
-      // console.log({ token })
+      console.log({ token })
       if (!token) {
         return Response.errorResponseWithoutData(
           res,
@@ -19,13 +19,13 @@ module.exports = {
       }
 
       const tokenData = await jwToken.decode(token);
-      // console.log({ tokenData })
+      console.log({ tokenData })
       if (!tokenData) {
         return Response.errorResponseWithoutData(res, res.locals.__("invalidToken"), 401);
       }
 
       const decoded = await jwToken.verify(tokenData);
-      // console.log({ decoded })
+      console.log({ decoded })
       if (!decoded?.id) {
         return Response.errorResponseWithoutData(res, res.locals.__("invalidToken"), 401);
       }

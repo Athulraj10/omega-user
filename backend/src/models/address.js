@@ -18,10 +18,6 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    countryName: {
-        type: String,
-        required: true
-    },
     firstName: {
         type: String,
         required: true

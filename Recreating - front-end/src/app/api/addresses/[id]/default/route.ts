@@ -8,8 +8,13 @@ export async function PATCH(
 ) {
   try {
     console.log("Received request to set address as default ID:", params.id);
-
-    const { data, status } = await backend.patch(`/api/v1/addresses/${params.id}/default`);
+    const authHeader = request.headers.get("Authorization");
+  
+    const { data, status } = await backend.patch(`/api/v1/addresses/${params.id}/default`,{
+      headers: {
+        Authorization: authHeader || "",
+      },
+    });
 
     return NextResponse.json(data, { status });
   } catch (error: any) {

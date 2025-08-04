@@ -21,7 +21,7 @@ const addressSlice = createSlice({
     },
     updateAddress: (state, action: PayloadAction<Address>) => {
       const index = state.addresses.findIndex(
-        (address) => address._id === action.payload._id
+        (address) => address.id === action.payload.id
       );
       if (index !== -1) {
         state.addresses[index] = action.payload;
@@ -29,13 +29,13 @@ const addressSlice = createSlice({
     },
     removeAddress: (state, action: PayloadAction<string>) => {
       state.addresses = state.addresses.filter(
-        (address) => address._id !== action.payload
+        (address) => address.id !== action.payload
       );
     },
     setDefaultAddress: (state, action: PayloadAction<string>) => {
       state.addresses = state.addresses.map((address) => ({
         ...address,
-        isDefault: address._id === action.payload,
+        isDefault: address.id === action.payload,
       }));
     },
     clearAddresses: (state) => {

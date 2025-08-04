@@ -19,18 +19,7 @@ import location from "@/utility/header/location";
 import { useAddress } from "@/store/hooks";
 
 // import DiscountCoupon from "../discount-coupon/DiscountCoupon";
-
-interface Address {
-  id: string;
-  firstName: string;
-  lastName: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
-  state: string;
-  mobileNo: string;
-}
+import { Address } from "../../types/address";
 
 interface Registration {
   firstName: string;
@@ -71,17 +60,23 @@ const CheckOut = ({
   const [vat, setVat] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [selectedMethod, setSelectedMethod] = useState("free");
-  const [checkOutMethod, setCheckOutMethod] = useState("guest");
   const [billingMethod, setBillingMethod] = useState("new");
   const [billingVisible, setBillingVisible] = useState(false);
-  const [addressVisible, setAddressVisible] = useState<any[]>([]);
-  const [optionVisible, setOptionVisible] = useState(true);
-  const [loginVisible, setLoginVisible] = useState(false);
-  const [btnVisible, setBtnVisible] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [filteredCountryData, setFilteredCountryData] = useState<any[]>([]);
   const checkboxRef = useRef<HTMLInputElement>(null);
-  const { addAddressData, addresses, clearAddressesData, removeAddressData, setAddressesData, setDefaultAddressData, updateAddressData } = useAddress();
+  
+  // Address management using Redux
+  const {
+    addresses,
+    setAddressesData,
+    addAddressData,
+    updateAddressData,
+    removeAddressData,
+    setDefaultAddressData,
+  } = useAddress();
 
   const [formData, setFormData]: any = useState({
     firstName: "",
@@ -101,14 +96,42 @@ const CheckOut = ({
   }, [selectedAddress]);
 
   useEffect(() => {
+    // Only show billing for logged-in users
     if (isLogin) {
-      setBtnVisible(false);
-      setOptionVisible(false);
       setBillingVisible(true);
+    } else {
+      setBillingVisible(false);
     }
   }, [isLogin]);
 
-  console.log({addresses})
+  // Load addresses for logged-in users
+  useEffect(() => {
+    if (isLogin) {
+      const loadAddresses = async () => {
+        try {
+          const token = JSON.parse(localStorage.getItem('token') || '');
+          const response = await fetch("/api/addresses", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const addressesData = await response.json();
+            setAddressesData(addressesData.data);
+          }
+        } catch (error) {
+          console.error("Error loading addresses:", error);
+        }
+      };
+
+      loadAddresses();
+    }
+  }, [isLogin]);
+
+  console.log({"addresses----------------":addresses})
 
   useEffect(() => {
     if (country) {
@@ -124,33 +147,7 @@ const CheckOut = ({
     setBillingMethod(event.target.value);
   };
 
-  const handleCheckOutChange = (event: any) => {
-    const method = event.target.value;
-    setCheckOutMethod(method);
-    setBillingVisible(false);
-    setLoginVisible(true);
-    setBtnVisible(true);
 
-    if (method === "guest") {
-      setBillingVisible(false);
-      setLoginVisible(false);
-    } else if (method === "login") {
-      setLoginVisible(true);
-      setBtnVisible(false);
-    }
-  };
-
-  const handleContinueBtn = () => {
-    if (checkOutMethod === "register") {
-      router.push("/register");
-    } else if (checkOutMethod === "guest") {
-      setBillingVisible(true);
-      setLoginVisible(false);
-      setBtnVisible(false);
-    } else if (checkOutMethod === "login") {
-      setBillingVisible(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -162,43 +159,71 @@ const CheckOut = ({
       return;
     }
 
-    const requiredFields = ["firstName", "lastName", "address", "country", "mobileNo"];
-    for (const field of requiredFields) {
-      if (!formData[field as keyof typeof formData]) {
-        setValidated(true);
-        return;
-      }
-    }
-
-    setValidated(false);
-
     try {
-      const token = JSON.parse(localStorage.getItem('token') || '');
-      const response = await fetch("/api/addresses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const addressData = {
+        label: "Home",
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        address: formData.address,
+        country: formData.country,
+        mobileNo: formData.mobileNo || "",
+      };
+      console.log({"addressData----------------":addressData})
 
-      if (!response.ok) throw new Error("Failed to save address");
 
-      const newAddress = await response.json();
-      setSelectedAddress(newAddress);
-      console.log({ newAddress })
-      addAddressData(newAddress);
+      if (isEditingAddress && editingAddressId) {
+        // Update existing address via API
+        const token = JSON.parse(localStorage.getItem('token') || '');
+        const response = await fetch(`/api/addresses/${editingAddressId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(addressData),
+        });
+
+        if (!response.ok) throw new Error("Failed to update address");
+
+        const updatedAddress = await response.json();
+        updateAddressData(updatedAddress);
+        showSuccessToast("Address updated successfully");
+        setIsEditingAddress(false);
+        setEditingAddressId(null);
+      } else {
+        // Create new address via API
+        const token = JSON.parse(localStorage.getItem('token') || '');
+        const response = await fetch("/api/addresses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(addressData),
+        });
+
+        if (!response.ok) throw new Error("Failed to save address");
+
+        const newAddress = await response.json();
+        addAddressData(newAddress.data);
+        showSuccessToast("Address added successfully");
+      }
+
+      // Reset form
       setFormData({
         firstName: "",
         lastName: "",
         address: "",
+        city: "",
+        postalCode: "",
         country: "",
+        state: "",
         mobileNo: "",
       });
 
-    } catch (error) {
-      console.error("Error saving address:", error);
+      setValidated(false);
+    } catch (error: any) {
+      showErrorToast(error.message || "Failed to save address");
     }
   };
 
@@ -256,6 +281,10 @@ const CheckOut = ({
 
 
   const handleCheckout = () => {
+    if (!isLogin) {
+      showErrorToast("Please login to place an order.");
+      return;
+    }
    
     if (!selectedAddress) {
       showErrorToast("Please select a billing address.");
@@ -289,49 +318,64 @@ const CheckOut = ({
     router.push("/orders");
   };
 
-  const handleRemoveAddress = (index: number) => {
-    const updatedAddresses = addressVisible.filter((_, i) => i !== index);
-    localStorage.setItem("shippingAddresses", JSON.stringify(updatedAddresses));
-    setAddressVisible(updatedAddresses);
+  const handleRemoveAddress = async (addressId: string) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('token') || '');
+      const response = await fetch(`/api/addresses/${addressId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to remove address");
+
+      removeAddressData(addressId);
+      showSuccessToast("Address removed successfully");
+    } catch (error: any) {
+      showErrorToast(error.message || "Failed to remove address");
+    }
   };
 
   const handleSelectAddress = (address: any) => {
     setSelectedAddress(address);
   };
 
-  const handleLogin = (e: any) => {
-    e.preventDefault();
+  const handleSetDefaultAddress = async (addressId: string) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('token') || '');
+      const response = await fetch(`/api/addresses/${addressId}/default`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
 
-    const form = e.currentTarget;
-    if (form.checkValidity() === false) {
-      e.stopPropagation();
-      setValidated(true);
-      return;
+      
+
+      if (!response.ok) throw new Error("Failed to set default address");
+
+      const updatedAddress = await response.json();
+      setDefaultAddressData(addressId);
+      showSuccessToast("Default address updated successfully");
+    } catch (error: any) {
+      showErrorToast(error.message || "Failed to set default address");
     }
+  };
 
-    const foundUser = registrations.find(
-      (user) => user.email === email && user.password === password
-    );
-
-    if (foundUser) {
-      const userData = { uid: foundUser.uid, email, password };
-
-      localStorage.setItem("login_user", JSON.stringify(userData));
-      dispatch(login(foundUser));
-      showSuccessToast("User Login Success");
-    } else {
-      showErrorToast("Invalid email or password");
-    }
-
-    const requiredFields = ["email", "password"];
-
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setValidated(true);
-        return;
-      }
-    }
-    setValidated(true);
+  const handleEditAddress = (address: any) => {
+    setIsEditingAddress(true);
+    setEditingAddressId(address.id);
+    setFormData({
+      firstName: address.firstName,
+      lastName: address.lastName,
+      address: address.address,
+      country: address.country,
+      mobileNo: address.mobileNo || "",
+    });
+    setBillingMethod("new"); // Switch to new address form for editing
   };
 
   const handleCountryChange = async (e: any) => {
@@ -563,159 +607,35 @@ const CheckOut = ({
                 {/* <!-- checkout content Start --> */}
                 <div className="gi-checkout-content">
                   <div className="gi-checkout-inner">
-                    {optionVisible && (
-                      <>
-                        <div className="gi-checkout-wrap m-b-40">
-                          <div className="gi-checkout-block">
-                            <h3 className="gi-checkout-title">New Customer</h3>
-                            <div className="gi-check-block-content">
-                              <div className="gi-check-subtitle">
-                                Checkout Options
-                              </div>
-                              <form action="#">
-                                <span className="gi-new-option">
-                                  <span>
-                                    <input
-                                      type="radio"
-                                      id="account2"
-                                      name="radio-group"
-                                      value="guest"
-                                      checked={checkOutMethod === "guest"}
-                                      onChange={handleCheckOutChange}
-                                    />
-                                    <label htmlFor="account2">
-                                      Guest Account
-                                    </label>
-                                  </span>
-                                  <span>
-                                    <input
-                                      type="radio"
-                                      id="account1"
-                                      name="radio-group"
-                                      value="register"
-                                      checked={checkOutMethod === "register"}
-                                      onChange={handleCheckOutChange}
-                                    />
-                                    <label htmlFor="account1">
-                                      Register Account
-                                    </label>
-                                  </span>
-                                  <span>
-                                    <input
-                                      type="radio"
-                                      id="account3"
-                                      name="radio-group"
-                                      value="login"
-                                      checked={checkOutMethod === "login"}
-                                      onChange={handleCheckOutChange}
-                                    />
-                                    <label htmlFor="account3">
-                                      Login Account
-                                    </label>
-                                  </span>
-                                </span>
-                              </form>
-
-                              {btnVisible ? (
-                                <>
-                                  <div className="gi-new-desc">
-                                    By creating an account you will be able to
-                                    shop faster, be up to date on an order`s
-                                    status, and keep track of the orders you
-                                    have previously made.
-                                  </div>
-
-                                  <div className="gi-new-btn">
-                                    <a
-                                      onClick={handleContinueBtn}
-                                      className="gi-btn-2"
-                                    >
-                                      Continue
-                                    </a>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  {loginVisible && (
-                                    <div
-                                      style={{ marginTop: "15px" }}
-                                      className=" m-b-40"
-                                    >
-                                      <div className="gi-checkout-block gi-check-login">
-                                        <div className="gi-check-login-form">
-                                          <Form
-                                            noValidate
-                                            validated={validated}
-                                            onSubmit={handleLogin}
-                                            action="#"
-                                            method="post"
-                                          >
-                                            <span className="gi-check-login-wrap">
-                                              <label>Email Address</label>
-                                              <Form.Group>
-                                                <Form.Control
-                                                  type="text"
-                                                  name="email"
-                                                  placeholder="Enter your email address"
-                                                  value={email}
-                                                  onChange={(e) =>
-                                                    setEmail(e.target.value)
-                                                  }
-                                                  required
-                                                />
-                                                <Form.Control.Feedback type="invalid">
-                                                  Please Enter correct username.
-                                                </Form.Control.Feedback>
-                                              </Form.Group>
-                                            </span>
-                                            <span
-                                              style={{ marginTop: "24px" }}
-                                              className="gi-check-login-wrap"
-                                            >
-                                              <label>Password</label>
-                                              <Form.Group>
-                                                <Form.Control
-                                                  type="password"
-                                                  name="password"
-                                                  pattern="^\d{6,12}$"
-                                                  placeholder="Enter your password"
-                                                  required
-                                                  value={password}
-                                                  onChange={(e) =>
-                                                    setPassword(e.target.value)
-                                                  }
-                                                />
-                                                <Form.Control.Feedback type="invalid">
-                                                  Please Enter 6-12 digit
-                                                  number.
-                                                </Form.Control.Feedback>
-                                              </Form.Group>
-                                            </span>
-                                            <span className="gi-check-login-wrap gi-check-login-btn">
-                                              <button
-                                                className="gi-btn-2"
-                                                type="submit"
-                                              >
-                                                Continue
-                                              </button>
-                                              <a
-                                                className="gi-check-login-fp"
-                                                href="#"
-                                              >
-                                                Forgot Password?
-                                              </a>
-                                            </span>
-                                          </Form>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              )}
+                    {!isLogin && (
+                      <div className="gi-checkout-wrap m-b-40">
+                        <div className="gi-checkout-block">
+                          <h3 className="gi-checkout-title">Login Required</h3>
+                          <div className="gi-check-block-content">
+                            <div className="gi-check-subtitle">
+                              Please login to continue with your order
+                            </div>
+                            <div className="gi-new-desc">
+                              You need to be logged in to place an order. Please login or register to continue.
+                            </div>
+                            <div className="gi-new-btn">
+                              <a
+                                onClick={() => router.push("/login")}
+                                className="gi-btn-2"
+                              >
+                                Login
+                              </a>
+                              <a
+                                onClick={() => router.push("/register")}
+                                className="gi-btn-2"
+                                style={{ marginLeft: "10px" }}
+                              >
+                                Register
+                              </a>
                             </div>
                           </div>
                         </div>
-                      </>
+                      </div>
                     )}
 
                     {billingVisible && (
@@ -735,7 +655,7 @@ const CheckOut = ({
                                   value="use"
                                   checked={billingMethod === "use"}
                                   onChange={handleBillingChange}
-                                  disabled={addressVisible.length === 0}
+                                  disabled={addresses.length === 0}
                                 />
                                 <label htmlFor="bill1">
                                   I want to use an existing address
@@ -749,7 +669,7 @@ const CheckOut = ({
                                   value="new"
                                   checked={
                                     billingMethod === "new" ||
-                                    addressVisible.length === 0
+                                    addresses.length === 0
                                   }
                                   onChange={handleBillingChange}
                                 />
@@ -759,7 +679,7 @@ const CheckOut = ({
                               </span>
                             </span>
                             {(billingMethod === "new" ||
-                              addressVisible.length === 0) && (
+                              addresses.length === 0) && (
                                 <div className="gi-check-bill-form">
                                   <Form
                                     noValidate
@@ -882,14 +802,14 @@ const CheckOut = ({
 
                                     <span className="gi-check-order-btn">
                                       <button type="submit" className="gi-btn-2">
-                                        Add
+                                        {isEditingAddress ? "Update" : "Add"}
                                       </button>
                                     </span>
                                   </Form>
                                 </div>
                               )}
                             {billingMethod === "use" &&
-                              addressVisible.length > 0 && (
+                              addresses.length > 0 && (
                                 <>
                                   <div className="gi-checkout-block gi-check-bill">
                                     <div className="gi-sidebar-block">
@@ -938,8 +858,8 @@ const CheckOut = ({
                                                     type="checkbox"
                                                     checked={
                                                       selectedAddress != null &&
-                                                      selectedAddress.id ===
-                                                      address.id
+                                                      selectedAddress._id ===
+                                                      address._id
                                                     }
                                                     onChange={() =>
                                                       handleSelectAddress(
@@ -964,15 +884,14 @@ const CheckOut = ({
                                                     <ul>
                                                       <li>
                                                         <strong className="gi-check-subtitle">
-                                                          Name :
+                                                          Label :
                                                         </strong>{" "}
                                                         <span
                                                           style={{
                                                             color: "#777",
                                                           }}
                                                         >
-                                                          {address.firstName}{" "}
-                                                          {address.lastName}{" "}
+                                                          {address.label}
                                                         </span>
                                                       </li>
                                                       <li>
@@ -989,79 +908,56 @@ const CheckOut = ({
                                                       </li>
                                                       <li>
                                                         <strong className="gi-check-subtitle">
-                                                          PostalCode :
+                                                          Mobile Number :
                                                         </strong>{" "}
                                                         <span
                                                           style={{
                                                             color: "#777",
                                                           }}
                                                         >
-                                                          {address.postalCode}
+                                                          {address.mobileNo ?? "N/a"}
                                                         </span>
                                                       </li>
                                                     </ul>
                                                   </div>
                                                 </Col>
-                                                <Col
-                                                  style={{ lineHeight: "25px" }}
-                                                  lg={6}
-                                                  md={6}
-                                                  sm={12}
-                                                >
-                                                  <div className="gi-single-list">
-                                                    <ul>
-                                                      <li>
-                                                        <strong className="gi-check-subtitle">
-                                                          Country :
-                                                        </strong>{" "}
-                                                        <span
-                                                          style={{
-                                                            color: "#777",
-                                                          }}
-                                                        >
-                                                          {address.countryName}
-                                                        </span>
-                                                      </li>
-                                                      <li>
-                                                        <strong className="gi-check-subtitle">
-                                                          State :
-                                                        </strong>{" "}
-                                                        <span
-                                                          style={{
-                                                            color: "#777",
-                                                          }}
-                                                        >
-                                                          {address.stateName}
-                                                        </span>
-                                                      </li>
-                                                      <li>
-                                                        <strong className="gi-check-subtitle">
-                                                          City :
-                                                        </strong>{" "}
-                                                        <span
-                                                          style={{
-                                                            color: "#777",
-                                                          }}
-                                                        >
-                                                          {address.city}
-                                                        </span>
-                                                      </li>
-                                                    </ul>
-                                                  </div>
-                                                </Col>
+                                               
                                               </Row>
 
-                                              <div>
+                                              <div style={{ position: "absolute", top: "10px", right: "40px" }}>
+                                                <button
+                                                  onClick={() => handleEditAddress(address)}
+                                                  style={{
+                                                    fontSize: "12px",
+                                                    color: "#5caf90",
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    marginRight: "10px"
+                                                  }}
+                                                >
+                                                  Edit
+                                                </button>
+                                                <button
+                                                  onClick={() => handleSetDefaultAddress(address.id)}
+                                                  style={{
+                                                    fontSize: "12px",
+                                                    color: "#5caf90",
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    marginRight: "10px"
+                                                  }}
+                                                >
+                                                  Set Default
+                                                </button>
                                                 <a
                                                   style={{
                                                     fontSize: "30px",
                                                     color: "#5caf90",
-                                                    position: "absolute",
-                                                    top: "0",
-                                                    right: "10px",
                                                   }}
                                                   onClick={() =>
-                                                    handleRemoveAddress(index)
+                                                    handleRemoveAddress(address.id)
                                                   }
                                                   href="#/"
                                                   className="remove"
@@ -1081,14 +977,13 @@ const CheckOut = ({
                         </div>
                       </div>
                     )}
-                    {btnVisible ||
-                      (!btnVisible === billingVisible && (
-                        <span className="gi-check-order-btn">
-                          <a onClick={handleCheckout} className="gi-btn-2">
-                            Place Order
-                          </a>
-                        </span>
-                      ))}
+                    {isLogin && billingVisible && (
+                      <span className="gi-check-order-btn">
+                        <a onClick={handleCheckout} className="gi-btn-2">
+                          Place Order
+                        </a>
+                      </span>
+                    )}
                   </div>
                 </div>
                 {/* <!--cart content End --> */}

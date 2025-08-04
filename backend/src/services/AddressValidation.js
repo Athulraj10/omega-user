@@ -8,7 +8,6 @@ const AddressValidation = {
       label: Joi.string().trim().max(50).valid("Home", "Work", "Other").optional(),
       address: Joi.string().trim().max(200).required(),
       country: Joi.string().trim().max(100).required(),
-      countryName: Joi.string().trim().max(100).required(),
       firstName: Joi.string().trim().max(100).required(),
       lastName: Joi.string().trim().max(100).required(),
       mobileNo: Joi.string().trim().max(100).required(),
@@ -36,7 +35,6 @@ const AddressValidation = {
       label: Joi.string().trim().max(50).valid("Home", "Work", "Other").optional(),
       address: Joi.string().trim().max(200).required(),
       country: Joi.string().trim().max(100).required(),
-      countryName: Joi.string().trim().max(100).required(),
       firstName: Joi.string().trim().max(100).required(),
       lastName: Joi.string().trim().max(100).required(),
       mobileNo: Joi.string().trim().max(100).required(),
@@ -44,6 +42,7 @@ const AddressValidation = {
     
     const { error } = schema.validate(req.body);
     if (error) {
+      console.log(error);
       return Response.validationErrorResponseData(
         res,
         res.__(Helper.validationMessageKey("updateAddressValidation", error))

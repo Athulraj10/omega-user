@@ -63,7 +63,6 @@ const addressController = {
         label: requestParams.label || 'Home',
         address: requestParams.address,
         country: requestParams.country,
-        countryName: requestParams.countryName,
         firstName: requestParams.firstName,
         lastName: requestParams.lastName,
         mobileNo: requestParams.mobileNo,
@@ -123,9 +122,9 @@ const addressController = {
       if (requestParams.label !== undefined) updateData.label = requestParams.label;
       if (requestParams.address !== undefined) updateData.address = requestParams.address;
       if (requestParams.country !== undefined) updateData.country = requestParams.country;
-      if (requestParams.countryName !== undefined) updateData.countryName = requestParams.countryName;
       if (requestParams.firstName !== undefined) updateData.firstName = requestParams.firstName;
       if (requestParams.lastName !== undefined) updateData.lastName = requestParams.lastName;
+      if (requestParams.mobileNo !== undefined) updateData.mobileNo = requestParams.mobileNo;
 
       const updatedAddress = await Address.findByIdAndUpdate(
         addressId,

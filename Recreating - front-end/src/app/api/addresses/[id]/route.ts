@@ -10,8 +10,17 @@ export async function PUT(
     console.log("Received request to update address ID:", params.id);
 
     const body = await request.json();
-    const { data, status } = await backend.put(`/api/v1/addresses/${params.id}`, body);
 
+    const authHeader = request.headers.get("Authorization");
+    console.log("Getting cart data");
+    const { data, status } = await backend.put(`/api/v1/addresses/${params.id}`, body, {
+      headers: {
+        Authorization: authHeader || "",
+      },
+    });
+
+
+    
     return NextResponse.json(data, { status });
   } catch (error: any) {
     console.error("Error updating address:", error?.response?.data || error.message);
@@ -31,8 +40,13 @@ export async function DELETE(
   try {
     console.log("Received request to delete address ID:", params.id);
 
-    const { data, status } = await backend.delete(`/api/v1/addresses/${params.id}`);
-
+    const authHeader = request.headers.get("Authorization");
+    console.log("Getting cart data");
+    const { data, status } =  await backend.delete(`/api/v1/addresses/${params.id}`, {
+      headers: {
+        Authorization: authHeader || "",
+      },
+    });
     return NextResponse.json(data, { status });
   } catch (error: any) {
     console.error("Error deleting address:", error?.response?.data || error.message);
