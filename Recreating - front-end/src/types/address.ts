@@ -2,13 +2,12 @@ export interface Address {
   _id: string;
   user: string;
   label: 'Home' | 'Work' | 'Other';
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
+  address: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
   country: string;
-  phone?: string;
+  mobileNo?: string;
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
@@ -16,13 +15,12 @@ export interface Address {
 
 export interface CreateAddressRequest {
   label?: 'Home' | 'Work' | 'Other';
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
+  address: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
   country: string;
-  phone?: string;
+  mobileNo?: string;
 }
 
 export interface UpdateAddressRequest extends Partial<CreateAddressRequest> {}

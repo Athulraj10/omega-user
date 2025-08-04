@@ -1,12 +1,14 @@
 const Order = require("../../models/order");
 const OrderValidation = require("../../services/OrderValidation");
 const Response = require("../../services/Response");
+const { v4: uuidv4 } = require('uuid');
 
 class OrderController {
   // Create a new order
   static async createOrder(req, res) {
     try {
       const { error } = OrderValidation.validateCreateOrder(req.body);
+      console.log({error});
       if (error) {
         return Response.validationErrorResponseData(
           res,
@@ -16,7 +18,8 @@ class OrderController {
 
       const orderData = {
         ...req.body,
-        user: req.user._id,
+        user: req.authUserId,
+        orderNumber:uuidv4(),
       };
 
       const order = new Order(orderData);

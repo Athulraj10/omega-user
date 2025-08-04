@@ -43,13 +43,13 @@ class OrderValidation {
       }),
     shippingAddress: Joi.object({
       label: Joi.string().optional(),
-      addressLine1: Joi.string().required().messages({
+      address: Joi.string().required().messages({
         "string.empty": "Shipping address is required",
         "any.required": "Shipping address is required",
       }),
-      city: Joi.string().optional(),
-      state: Joi.string().optional(),
-      postalCode: Joi.string().optional(),
+      // city: Joi.string().optional(),
+      // state: Joi.string().optional(),
+      // postalCode: Joi.string().optional(),
       country: Joi.string().required().messages({
         "string.empty": "Country is required",
         "any.required": "Country is required",
@@ -60,13 +60,13 @@ class OrderValidation {
     }),
     billingAddress: Joi.object({
       label: Joi.string().optional(),
-      addressLine1: Joi.string().required().messages({
+      address: Joi.string().required().messages({
         "string.empty": "Billing address is required",
         "any.required": "Billing address is required",
       }),
-      city: Joi.string().optional(),
-      state: Joi.string().optional(),
-      postalCode: Joi.string().optional(),
+      // city: Joi.string().optional(),
+      // state: Joi.string().optional(),
+      // postalCode: Joi.string().optional(),
       country: Joi.string().required().messages({
         "string.empty": "Country is required",
         "any.required": "Country is required",
@@ -105,9 +105,7 @@ class OrderValidation {
       "number.positive": "Total must be positive",
       "any.required": "Total is required",
     }),
-    notes: Joi.string().max(500).optional().messages({
-      "string.max": "Notes cannot exceed 500 characters",
-    }),
+    notes: Joi.string().optional(),
   });
 
   static updateOrderStatusSchema = Joi.object({

@@ -304,37 +304,36 @@ const CheckOut = ({
         totalPrice: item.newPrice * item.quantity,
       }));
 
-      // Prepare order data
-      const orderData: CreateOrderRequest = {
-        items: orderItems,
-        shippingAddress: {
-          label: selectedAddress.label || "Home",
-          addressLine1: selectedAddress.addressLine1,
-          city: selectedAddress.city || "",
-          state: selectedAddress.state || "",
-          postalCode: selectedAddress.postalCode || "",
-          country: selectedAddress.country,
-          phone: selectedAddress.phone || "",
-        },
-        billingAddress: {
-          label: selectedAddress.label || "Home",
-          addressLine1: selectedAddress.addressLine1,
-          city: selectedAddress.city || "",
-          state: selectedAddress.state || "",
-          postalCode: selectedAddress.postalCode || "",
-          country: selectedAddress.country,
-          phone: selectedAddress.phone || "",
-        },
+             // Prepare order data
+       const orderData: CreateOrderRequest = {
+         items: orderItems,
+         shippingAddress: {
+           label: selectedAddress.label || "Home",
+           address: selectedAddress.address,
+          //  city: selectedAddress.city || "",
+          //  state: selectedAddress.state || "",
+          //  postalCode: selectedAddress.postalCode || "",
+           country: selectedAddress.country,
+           phone: selectedAddress.mobileNo || "",
+         },
+         billingAddress: {
+           label: selectedAddress.label || "Home",
+           address: selectedAddress.address,
+          //  city: selectedAddress.city || "",
+          //  state: selectedAddress.state || "",
+          //  postalCode: selectedAddress.postalCode || "",
+           country: selectedAddress.country,
+           phone: selectedAddress.mobileNo || "",
+         },
         paymentMethod: "cash_on_delivery",
         shippingMethod: selectedMethod === "free" ? "free" : "standard",
         subtotal: subTotal,
         tax: vat,
         discount: discountAmount,
         total: total,
-        notes: "",
+        notes: "this is a test note",
       };
 console.log({"orderData----------------":orderData})
-return
       // Create order via API
       const newOrder = await OrderApiService.createOrder(orderData);
       
@@ -889,8 +888,9 @@ return
                                               >
                                                 <label className="checkbox style-c">
                                                   <input
-                                                    value=""
-                                                    type="checkbox"
+                                                    value={address.id}
+                                                    type="radio"
+                                                    name="address-selection"
                                                     checked={
                                                       selectedAddress != null &&
                                                       selectedAddress._id ===

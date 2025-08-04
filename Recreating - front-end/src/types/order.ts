@@ -9,7 +9,7 @@ export interface OrderItem {
 
 export interface OrderAddress {
   label?: string;
-  addressLine1: string;
+  address: string;
   city?: string;
   state?: string;
   postalCode?: string;
